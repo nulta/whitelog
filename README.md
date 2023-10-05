@@ -1,0 +1,2 @@
+# whitelog
+Mini blogging software.
