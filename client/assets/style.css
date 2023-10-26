@@ -8,6 +8,7 @@
     --color-background: #fafafa;
     --color-content: #222;
     --color-dim: #666;
+    --color-lit: #ddd;
 }
 
 
@@ -55,7 +56,7 @@ body > header {
         color: var(--color-content)
     }
 
-    & .links {
+    & nav {
         color: var(--color-dim);
 
         display: flex;
@@ -66,8 +67,14 @@ body > header {
         padding: 0 1em;
         gap: 1em;
 
-        & a {
+        & a:any-link {
             font-weight: bold;
+        }
+
+        & a:any-link:hover {
+            text-decoration: 3px dashed underline #00000066;
+            text-underline-offset: 2px;
+            text-decoration-skip-ink: none;        
         }
     }
 }
@@ -134,4 +141,42 @@ main a:any-link:focus {
         padding: 5px;
 
     }
+}
+
+.post-list {
+    & article a:any-link {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    & article a:any-link:focus {
+        outline: 2px solid var(--color-dim);
+        outline-offset: 0;
+        background-color: var(--color-lit);
+    }
+
+    & article a {
+        display: block;
+        background-color: var(--color-lit);
+        border: 1px solid var(--color-dim);
+        padding: 1em 2em;
+        margin: 1.5em 0;
+
+        & h3 {
+            margin-bottom: 0;
+        }
+
+        & .info {
+            color: var(--color-dim);
+
+            & time::before {
+                content: "";
+            }
+
+            & .author::before {
+                content: "— ";
+            }
+        }
+    }
+
 }
