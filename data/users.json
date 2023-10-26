@@ -1,0 +1,8 @@
+{
+    "example1": {
+        "email": "example@example.com",
+        "password": "$2a$12$Ovx4NFVV0MnX3XuWKWxls.ZDCMv..aqrzPIROt8BIlPbD7GxDn2/q",
+        "name": "Example user",
+        "about": "hello!"
+    }
+}

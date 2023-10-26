@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;700&display=swap');
+
+:root {
+    --color-primary: #00ffcc;
+    --color-secondary: #00ccff;
+    --color-hyperlink: #1ec5a4;
+    --color-backdrop: #ffffff;
+    --color-background: #fafafa;
+    --color-content: #222;
+    --color-dim: #666;
+}
+
+
+/* Layout */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    color: var(--color-content);
+    background-color: var(--color-backdrop);
+    font-family: "IBM Plex Sans KR", sans-serif;
+
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+body > header {
+    background-color: var(--color-backdrop);
+
+    width: 100%;
+    height: 14rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    /* border-bottom: 1px solid var(--color-dim); */
+
+    & h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    & :link, & :visited {
+        text-decoration: none;
+        color: var(--color-content)
+    }
+
+    & .links {
+        color: var(--color-dim);
+
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        /* max-width: 800px;
+        width: 100%; */
+        padding: 0 1em;
+        gap: 1em;
+
+        & a {
+            font-weight: bold;
+        }
+    }
+}
+
+body > main {
+    background-color: var(--color-background);
+
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 3rem;
+    flex-grow: 1;
+
+    border: 1px solid var(--color-dim);
+}
+
+body > footer {
+    height: 7rem;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 2rem;
+    padding: 0 1rem;
+    font-size: 80%;
+}
+
+
+/* Baseline */
+
+main a:any-link {
+    ---color-hyperlink-0: var(--color-hyperlink);
+    ---color-hyperlink-1: color-mix(in srgb, var(--color-hyperlink) 40%, transparent);
+    ---color-hyperlink-2: color-mix(in srgb, var(--color-hyperlink) 20%, transparent);
+    color: var(---color-hyperlink-0);
+
+    transition: text-decoration-color 0.1s ease-out, background-color 0.1s ease-out;
+    text-decoration: 3px dashed underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 2px;
+    text-decoration-skip-ink: none;
+}
+
+main a:any-link:is(:focus, :hover) {
+    text-decoration-color: var(---color-hyperlink-1);
+}
+
+main a:any-link:focus {
+    outline: none;
+    background-color: var(---color-hyperlink-2);
+}
+
+
+/* Components */
+
+.tag-list {
+    & ul {
+        display: flex;
+        flex-direction: row;
+        gap: 1em;
+        list-style: none;
+        padding-left: 0;
+    }
+
+    & li {
+        padding: 5px;
+
+    }
+}
