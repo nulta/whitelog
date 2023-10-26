@@ -9,6 +9,7 @@
     --color-content: #222;
     --color-dim: #666;
     --color-lit: #ddd;
+    --color-lit-less: #ccc;
 }
 
 
@@ -34,15 +35,13 @@ body > header {
     background-color: var(--color-backdrop);
 
     width: 100%;
-    height: 14rem;
+    height: 15rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 
-    /* border-bottom: 1px solid var(--color-dim); */
-
-    & h1 {
+    & .logo {
         font-size: 2.5rem;
         font-weight: bold;
         flex-grow: 1;
@@ -62,8 +61,6 @@ body > header {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        /* max-width: 800px;
-        width: 100%; */
         padding: 0 1em;
         gap: 1em;
 
@@ -71,10 +68,10 @@ body > header {
             font-weight: bold;
         }
 
-        & a:any-link:hover {
-            text-decoration: 3px dashed underline #00000066;
+        & a:any-link:is(:focus, :hover) {
+            text-decoration: 3px dotted underline #00000066;
             text-underline-offset: 2px;
-            text-decoration-skip-ink: none;        
+            text-decoration-skip-ink: none;
         }
     }
 }
@@ -103,26 +100,33 @@ body > footer {
 
 /* Baseline */
 
-main a:any-link {
-    ---color-hyperlink-0: var(--color-hyperlink);
-    ---color-hyperlink-1: color-mix(in srgb, var(--color-hyperlink) 40%, transparent);
-    ---color-hyperlink-2: color-mix(in srgb, var(--color-hyperlink) 20%, transparent);
-    color: var(---color-hyperlink-0);
-
-    transition: text-decoration-color 0.1s ease-out, background-color 0.1s ease-out;
-    text-decoration: 3px dashed underline;
-    text-decoration-color: transparent;
-    text-underline-offset: 2px;
-    text-decoration-skip-ink: none;
+body > main,
+body > footer {
+    & a:any-link {
+        ---color-hyperlink-0: var(--color-hyperlink);
+        ---color-hyperlink-1: color-mix(in srgb, var(--color-hyperlink) 40%, transparent);
+        ---color-hyperlink-2: color-mix(in srgb, var(--color-hyperlink) 20%, transparent);
+        color: var(---color-hyperlink-0);
+        text-decoration: 3px dotted underline;
+        text-decoration-color: transparent;
+    }
+    
+    & a:any-link:is(:focus, :hover) {
+        text-decoration-color: var(---color-hyperlink-1);
+        text-decoration-skip-ink: none;
+        text-underline-offset: 2px;
+    }
+    
+    & a:any-link:is(:focus) {
+        outline: none;
+        background-color: var(---color-hyperlink-2);
+    }
 }
 
-main a:any-link:is(:focus, :hover) {
-    text-decoration-color: var(---color-hyperlink-1);
-}
-
-main a:any-link:focus {
-    outline: none;
-    background-color: var(---color-hyperlink-2);
+h1 {
+    font-size: 2em;
+    margin-block-start: .67em;
+    margin-block-end: .67em;
 }
 
 
@@ -152,17 +156,25 @@ main a:any-link:focus {
     & article a:any-link:focus {
         outline: 2px solid var(--color-dim);
         outline-offset: 0;
-        background-color: var(--color-lit);
+    }
+
+    & article a:any-link:is(:hover, :focus) {
+        background-color: var(--color-lit-less);
     }
 
     & article a {
         display: block;
         background-color: var(--color-lit);
         border: 1px solid var(--color-dim);
-        padding: 1em 2em;
+        padding: 1.75em 2em;
         margin: 1.5em 0;
 
         & h3 {
+            margin-bottom: 0;
+            margin-top: 0;
+        }
+
+        & :last-child {
             margin-bottom: 0;
         }
 
@@ -179,4 +191,51 @@ main a:any-link:focus {
         }
     }
 
+    & .more {
+        display: flex;
+        gap: 0.5em;
+        
+        &::before, &::after {
+            content: "";
+            /* flex: 1 1; */
+            border-bottom: 3px double var(--color-hyperlink);
+            opacity: 0.5;
+            margin: auto;
+        }
+
+        &::before {
+            width: 1.5em;
+        }
+
+        &::after {
+            flex: 1 1;
+        }
+    }
+
+}
+
+main > article {
+    & > hgroup {
+        & h1 {
+            margin-bottom: 0;
+        }
+
+        & .info {
+            color: var(--color-dim);
+
+            & time::before {
+                content: "";
+            }
+
+            & .author::before {
+                content: "— ";
+            }
+        }
+
+    }
+
+    & p::before {
+        content: "";
+        margin-left: 1em;
+    }
 }

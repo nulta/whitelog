@@ -1,25 +1,29 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{#site.lang}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="{{#site.name}}">
+    <meta name="description" content="{{#site.description}}">
     <link rel="stylesheet" href="/assets/style.css">
-    <title>{{#siteName}}</title>
+    <script src="/assets/script.js"></script>
+    <title>{{#site.name}}</title>
 </head>
 <body>
     <header>
-        <h1>
-            <a href="/">{{#siteName}}</a>
-        </h1>
+        <div class="logo">
+            <a href="/">{{#site.name}}</a>
+        </div>
         <nav>
-            <a href="/about">About</a>
-            <a href="/tags">Tags</a>
-            <a href="/list">Posts</a>
-            <a href="/rss">RSS</a>
+            <a href="/about">about</a>
+            <a href="/tags">tags</a>
+            <a href="/list">posts</a>
+            <a href="/rss">rss</a>
         </nav>
     </header>
     <main>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores temporibus itaque magnam laboriosam voluptas et porro nihil illum assumenda iusto corporis voluptatem nulla sed delectus, animi adipisci soluta eligendi nemo!</p>
+        <h1>안녕하세요!</h1>
+        <p>{{#site.description}}</p>
         <section class="tag-list">
             <h2>Tags</h2>
             <ul>
@@ -37,6 +41,25 @@
                         <time datetime="2023-10-26+0900">2023-10-26</time>
                         <span class="author">nulta</span>
                     </div>
+                    <p>여기에 글에 대한 간단한 설명이 들어갑니다.</p>
+                </a>
+            </article>
+            <article>
+                <a href="/cAvx">
+                    <h3>Hello, World! 2</h3>
+                    <div class="info">
+                        <time datetime="2023-10-25+0900">2023-10-25</time>
+                        <span class="author">nulta</span>
+                    </div>
+                </a>
+            </article>
+            <article>
+                <a href="/cAvx">
+                    <h3>Hello, World! 2</h3>
+                    <div class="info">
+                        <time datetime="2023-10-25+0900">2023-10-25</time>
+                        <span class="author">nulta</span>
+                    </div>
                     <p>asdf</p>
                 </a>
             </article>
@@ -44,19 +67,50 @@
                 <a href="/cAvx">
                     <h3>Hello, World! 2</h3>
                     <div class="info">
-                        <time datetime="2023-10-26+0900">2023-10-26</time>
+                        <time datetime="2023-10-25+0900">2023-10-25</time>
                         <span class="author">nulta</span>
                     </div>
                     <p>asdf</p>
                 </a>
             </article>
+            <article>
+                <a href="/cAvx">
+                    <h3>Hello, World! 2</h3>
+                    <div class="info">
+                        <time datetime="2023-10-25+0900">2023-10-25</time>
+                        <span class="author">nulta</span>
+                    </div>
+                    <p>asdf</p>
+                </a>
+            </article>
+            <article>
+                <a href="/cAvx">
+                    <h3>Hello, World! 2</h3>
+                    <div class="info">
+                        <time datetime="2023-10-25+0900">2023-10-25</time>
+                        <span class="author">nulta</span>
+                    </div>
+                    <p>asdf</p>
+                </a>
+            </article>
+            <article>
+                <a href="/cAvx">
+                    <h3>Hello, World! 2</h3>
+                    <div class="info">
+                        <time datetime="2023-10-25+0900">2023-10-25</time>
+                        <span class="author">nulta</span>
+                    </div>
+                    <p>asdf</p>
+                </a>
+            </article>
+            <a class="more" href="/list">더 보기</a>
         </section>
     </main>
     <footer>
         <p>
-            <strong>{{#siteName}}</strong><br>
-            (c) Copyright {{#author}}, All rights reserved.<br>
-            powered by whitelog
+            <strong>{{#site.name}}</strong><br>
+            powered by whitelog<br>
+            from <a href="/about">{{#site.ownerName}}</a> with &lt;3 <br>
         </p>
     </footer>
 </body>

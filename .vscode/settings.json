@@ -2,5 +2,8 @@
     "deno.enable": true,
     "deno.lint": true,
     "deno.unstable": true,
-    "liveServer.settings.root": "/client"
+    "liveServer.settings.root": "/client",
+    "deno.disablePaths": [
+        "client"
+    ]
 }

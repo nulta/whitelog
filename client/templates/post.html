@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="{{#site.lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="{{#site.name}}">
+    <meta name="description" content="{{#site.description}}">
+    <link rel="stylesheet" href="/assets/style.css">
+    <script src="/assets/script.js"></script>
+    <title>{{#site.name}}</title>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/">{{#site.name}}</a>
+        </div>
+        <nav>
+            <a href="/about">About</a>
+            <a href="/tags">Tags</a>
+            <a href="/list">Posts</a>
+            <a href="/rss">RSS</a>
+        </nav>
+    </header>
+    <main>
+        <article>
+            <hgroup>
+                <h1>{{#post.name}}</h1>
+                <div class="info">
+                    <time datetime="{{#post.time}}+0900">{{#post.time}}</time>
+                    <span class="author">{{#post.author}}</span>
+                </div>
+            </hgroup>
+            
+            {{#post.content}}
+            
+            <section class="relations">
+                <h2>Related posts</h2>
+                <!-- 링크된 글, 역링크 글, 태그 -->
+            </section>
+            
+            <section class="comments">
+                <h2>Comments</h2>
+            </section>
+        </article>
+    </main>
+    <footer>
+        <p>
+            <strong>{{#site.name}}</strong><br>
+            powered by whitelog<br>
+            from <a href="/about">{{#site.ownerName}}</a> with &lt;3 <br>
+        </p>
+    </footer>
+</body>
+</html>
