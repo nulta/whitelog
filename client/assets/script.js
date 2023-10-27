@@ -10,7 +10,7 @@ addEventListener("load", () => {
         
         // Post data
         "post.name": "글 이름",
-        "post.content": "<p>Lorem ipsum dolor sit amet consectetur <em>adipisicing</em> elit. Ratione voluptates autem ut molestiae tenetur, adipisci quia velit obcaecati magnam laboriosam quaerat corporis dolor sint omnis deserunt. Quaerat delectus accusantium nobis.</p>",
+        "post.content": "<p>Lorem ipsum dolor sit amet consectetur <em>adipisicing</em> elit. Ratione voluptates autem ut molestiae tenetur, adipisci quia velit obcaecati magnam laboriosam quaerat corporis dolor sint omnis deserunt. Quaerat delectus accusantium nobis.</p>".repeat(2),
         "post.author": "nulta",
         "post.time": "2023-10-27",
     }

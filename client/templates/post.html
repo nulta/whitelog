@@ -29,17 +29,71 @@
                     <time datetime="{{#post.time}}+0900">{{#post.time}}</time>
                     <span class="author">{{#post.author}}</span>
                 </div>
+                <ul class="tags">
+                    <li><a href="/tags/asdf">#asdf</a></li>
+                    <li><a href="/tags/qwer">#qwer</a></li>
+                    <li><a href="/tags/tyuloqq">#TyuLoqQ</a></li>
+                </ul>
             </hgroup>
             
-            {{#post.content}}
+            <section class="content">
+                {{#post.content}}
+            </section>
             
             <section class="relations">
                 <h2>Related posts</h2>
-                <!-- 링크된 글, 역링크 글, 태그 -->
+                <!-- 상호 링크하는 글, 링크된 글, 역링크 글 -->
+                <ul>
+                    <li class="outlink inlink"><a href="/qbc6">both link</a></li>
+                    <li class="outlink"><a href="/qbc6">outgoing link</a></li>
+                    <li class="inlink"><a href="/qbc6">backlink</a></li>
+                </ul>
             </section>
             
             <section class="comments">
                 <h2>Comments</h2>
+                <article>
+                    <hgroup>
+                        <h3>nulta-2</h3>
+                        <div class="info">
+                            <time datetime="2023-10-27+0900">2023-10-27</time>
+                            <a class="homepage external" href="https://github.com/nulta" rel="nofollow">github</a>
+                        </div>
+                    </hgroup>
+                    <p>hello</p>
+                </article>
+                <article class="reply">
+                    <hgroup>
+                        <h3>nulta-2</h3>
+                        <div class="info">
+                            <time datetime="2023-10-27+0900">2023-10-27</time>
+                            <a class="homepage external" href="https://github.com/nulta" rel="nofollow">github</a>
+                        </div>
+                    </hgroup>
+                    <p>
+                        hello world<br>
+                        asdfasdf
+                    </p>
+                </article>
+                <article class="reply from-member">
+                    <hgroup>
+                        <h3>nulta</h3>
+                        <div class="info">
+                            <time datetime="2023-10-27+0900">2023-10-27</time>
+                        </div>
+                    </hgroup>
+                    <p>hello world</p>
+                </article>
+                <article class="from-member">
+                    <hgroup>
+                        <h3>nulta</h3>
+                        <div class="info">
+                            <time datetime="2023-10-27+0900">2023-10-27</time>
+                        </div>
+                    </hgroup>
+                    <p>hello world</p>
+                </article>
+                <button class="new-comment">Add comment</button>
             </section>
         </article>
     </main>
