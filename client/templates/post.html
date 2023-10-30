@@ -7,7 +7,7 @@
     <meta name="description" content="{{#site.description}}">
     <link rel="stylesheet" href="/assets/style.css">
     <script src="/assets/script.js"></script>
-    <title>{{#site.name}}</title>
+    <title>{{#post.name}} - {{#site.name}}</title>
 </head>
 <body>
     <header>
@@ -93,7 +93,17 @@
                     </hgroup>
                     <p>hello world</p>
                 </article>
-                <button class="new-comment">Add comment</button>
+                <button class="add-comment">Add comment</button>
+                <!--  -->
+                    <form class="add-comment-box">
+                        <label for="comment-box-name">Nickname</label>
+                        <input tabindex="0" type="text" id="comment-box-name" name="name" placeholder="nickname"/>
+                        <label for="comment-box-name">Homepage or SNS (optional)</label>
+                        <input tabindex="0" type="text" id="comment-box-url" name="url" placeholder="homepage (or SNS)"/>
+                        <textarea placeholder="Add comment"></textarea>
+                        <button>Submit</button>
+                    </form>
+                 <!-- -->
             </section>
         </article>
     </main>

@@ -1,3 +1,5 @@
+
+// [DEBUG] placeholder replacement
 addEventListener("load", () => {
     console.log("[DEBUG] Executing client-side placeholder replacement.")
 
@@ -22,5 +24,21 @@ addEventListener("load", () => {
     })
     document.documentElement.lang = document.documentElement.lang.replaceAll(placeholderRegex, (match, p1) => {
         return replacements[p1] || match
+    })
+})
+
+
+// Add comment
+addEventListener("load", () => {
+    const addCommentButton = document.querySelectorAll("article button.add-comment")
+    if (!addCommentButton) { return }
+
+    addCommentButton.forEach((v) => {
+        v.addEventListener("click", (ev) => {
+            /** @type {HTMLButtonElement} */
+            const target = ev.target
+            
+            document.createElement()
+        })
     })
 })

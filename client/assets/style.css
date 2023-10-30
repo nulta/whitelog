@@ -205,7 +205,6 @@ h1 {
         
         &::before, &::after {
             content: "";
-            /* flex: 1 1; */
             border-bottom: 3px double var(--color-hyperlink);
             opacity: 0.5;
             margin: auto;
@@ -332,7 +331,8 @@ main > article {
         }
     }
 
-    & section.comments > button.new-comment {
+    & section.comments > button.add-comment,
+    & section.comments > .add-comment-box {
         font-family: inherit;
         margin-top: 1em;
         font-size: 1em;
@@ -345,10 +345,30 @@ main > article {
         font-style: italic;
         font-weight: bold;
         color: var(--color-dim);
+    }
+
+    & section.comments > button.add-comment {
         cursor: text;
 
         &:is(:hover, :focus) {
             background-color: var(--color-lit-less);
+        }
+    }
+
+    & section.comments > .add-comment-box {
+        & input, & textarea, & button {
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        & input[type=text] {
+            
+        }
+        & textarea {
+            display: block;
+            width: 100%;
+            resize: none;
+            height: 5em;
         }
     }
 }
