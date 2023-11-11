@@ -14,11 +14,11 @@
 
     // PBKDF2-SHA256-128bit
     // {pw: token, salt: sign, iter: pbkdf2_iterations}
-    pbkdf2_hash: "rb87MWdTSzAgsC2+KCzNUQ==",
+    pbkdf2Hash: "rb87MWdTSzAgsC2+KCzNUQ==",
     
     // 난이도와 비례. 난이도 값은 IP의 신뢰도에 따라 달라짐.
     // ex) 해외 IP, VPN, 공용 IP, 데이터센터 등은 더 높은 난이도.
-    pbkdf2_iter: 10000,
+    pbkdf2Iter: 10000,
 }
 
 2. client는 uuid를 무작위 대입하며 체크섬을 검증 (평균 128번쯤)...
@@ -26,8 +26,8 @@
 3. client는 comment를 남길 때 이하 정보를 포함
 
 -> {
-    challenge_token: "00654c4e58-5a8f3eed-1b56-4e3c-b88f-c1753b6396bf",
-    challenge_sign: "8dPiQ78GHRlYRqrJ4dw4ML9Tm7hUTtOh1bYsunb4iRE=",
+    challengeToken: "00654c4e58-5a8f3eed-1b56-4e3c-b88f-c1753b6396bf",
+    challengeSign: "8dPiQ78GHRlYRqrJ4dw4ML9Tm7hUTtOh1bYsunb4iRE=",
 }
 
 4. server는 challenge token의 유효 기간과 challenge_sign을 검증.
@@ -77,6 +77,7 @@ async function makePbkdf2(token, salt, iterations) {
  * @param {number} iterations 
  */
 async function verifyPbkdf2(hashUint32Array, token, salt, iterations) {
+    console.assert(hashUint32Array.__proto__ == Uint32Array.prototype, "Invalid type of hashUint32Array")
     const encoder = new TextEncoder
     token = encoder.encode(token)
     salt = encoder.encode(salt)
@@ -94,5 +95,30 @@ async function verifyPbkdf2(hashUint32Array, token, salt, iterations) {
     
     return (bits1.length == bits2.length) && bits2.every((v, k) => v === bits1[k])
 }
+
+;(async ()=>{
+    const token = "00654c4e58-5a8f3eed-1b56-4e3c-b88f-c1753b6396bf"
+    const sign = "WnEaaFyjOhOwU5IdJuTyA5renLb6n/U9QpUsss2qhvk="
+    const iter = 20000
+    const hash = await makePbkdf2(token, sign, iter).then(Uint32ArrayToBase64)
+    console.log(JSON.stringify({
+        token,
+        sign,
+        pbkdf2Hash: hash,
+        pbkdf2Iter: iter,
+    }))
+
+    console.log(
+        hash,
+        await makePbkdf2(token, sign, iter),
+        await Uint32ArrayToBase64(hash),
+        await verifyPbkdf2(
+            await Uint32ArrayToBase64(hash),
+            token,
+            sign,
+            iter
+        )
+    )
+})()
 
 ```

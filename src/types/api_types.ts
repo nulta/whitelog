@@ -6,8 +6,8 @@ type ApiCommentChallenge_Data = {
     error: null,
     token: string,
     sign: string,
-    pbkdf2_hash: string,
-    pbkdf2_iter: number,
+    pbkdf2Hash: string,
+    pbkdf2Iter: number,
 }
 
 

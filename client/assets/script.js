@@ -9,7 +9,7 @@ addEventListener("DOMContentLoaded", () => {
         "site.name": "whitelog",
         "site.description": "Description of your awesome blog!",
         "site.ownerName": "nulta",
-        
+
         // Post data
         "post.name": "글 이름",
         "post.author": "nulta",
@@ -68,20 +68,23 @@ addEventListener("DOMContentLoaded", () => {
     const html = String.raw;
 
     function base64ToUint32Array(base64_string) {
-        return Uint8Array.from(atob(base64_string), c => c.charCodeAt(0))
+        return new Uint32Array(
+            Uint8Array.from(atob(base64_string), c => c.charCodeAt(0)).buffer
+        )
     }
 
-    /** 
+    /**
      * Verify the 128bit sha256 pbkdf2 token with given params.
      * This function should NOT be used on important security applications.
-     * 
+     *
      * @param {Uint32Array} hashUint32Array
      * @param {string} token
      * @param {string} salt
-     * @param {number} iterations 
+     * @param {number} iterations
      */
     async function verifyPbkdf2(hashUint32Array, token, salt, iterations) {
         const encoder = new TextEncoder
+        const textToken = token
         token = encoder.encode(token)
         salt = encoder.encode(salt)
 
@@ -95,13 +98,17 @@ addEventListener("DOMContentLoaded", () => {
                     128
                 )
             ).then(arraybuffer => new Uint32Array(arraybuffer))
-        
-        return (bits1.length == bits2.length) && bits2.every((v, k) => v === bits1[k])
+
+        if (bits1.length == bits2.length && bits2.every((v, k) => v === bits1[k])) {
+            return textToken
+        } else {
+            return false
+        }
     }
 
     class CommentFormElement extends HTMLElement {
         constructor() {super()}
-    
+
         connectedCallback() {
             this.innerHTML = html`
                 <button class="add-comment">Add comment</button>
@@ -122,8 +129,8 @@ addEventListener("DOMContentLoaded", () => {
                     <label for="add-comment-box-url">Website/SNS</label>
                     <input tabindex="0" type="text" id="add-comment-box-url" name="url" placeholder="Not specified" />
                     <textarea placeholder="Add comment" name="comment" maxlength="500" autofocus></textarea>
-                    <button name="submit">Submit</button>
                     <p class="status-display"></p>
+                    <button name="submit">Submit</button>
                 </form>
             `;
 
@@ -131,13 +138,14 @@ addEventListener("DOMContentLoaded", () => {
             const elems = form.elements
 
             const {nickname, url} = this.getUserData()
-            elems.nickname?.value = nickname
-            elems.url?.value = url
-            
+            elems.nickname.value = nickname
+            elems.url.value = url
+
             elems["comment"].addEventListener("input", ev => {
+                ev.target.style.height = undefined
                 ev.target.style.height = ev.target.scrollHeight + "px"
             })
-            
+
             form.addEventListener("submit", async ev => {
                 ev.preventDefault()
                 await this.submitComment()
@@ -158,64 +166,199 @@ addEventListener("DOMContentLoaded", () => {
         updateErrorText(text) {
             console.error("comment-form: ", text)
             const display = this.querySelector(".status-display")
-            display?.classList.value = "status-display error"
-            display?.innerText = text
+            if (!display) { return }
+            display.classList.value = "status-display error"
+            display.innerText = text
         }
 
         updateStatusText(text) {
             console.log("comment-form: ", text)
             const display = this.querySelector(".status-display")
-            display?.classList.value = "status-display"
-            display?.innerText = text
+            if (!display) { return }
+            display.classList.value = "status-display"
+            display.innerText = text
         }
 
         async calculateChallenge() {
+            // Is it locked?
             if (this.challengeValue) {
                 return await this.challengeValue
             }
 
+            // Lock
             let resolve, reject
             this.challengeValue = new Promise((res, rej) => {resolve = res; reject = rej})
+
             try {
+                const timeStart = performance.now()
+                console.log("calculateChallenge(): Fetching challenge API...")
+
                 /** @type {ApiCommentChallenge} */
                 const data = await fetch("/~api/comment/challenge")
                     .then(r => r.json())
                     .catch(e => ({"error": e.toString()}))
+
                 if (data.error) {throw data.error}
 
-                const hexPool = Array(0xff + 1).fill()
+                console.log("calculateChallenge(): Performing calculation...")
+
+                // Array in range of (0x00 ~ 0xff), random ordered
+                const randomPool = Array(0xff + 1).fill()
                     .map((_,k) => [k, Math.random()])
                     .sort((i,j) => i[1] - j[1])
-                    .map(v => v[0].toString(16).padStart(2,"0"))
-                
-                const signU32 = base64ToUint32Array(data.sign)
+                    .map(v => v[0])
 
-                for (hex of hexPool) {
-                    const testToken = data.token.replace("??", hex)
-                    
+                const hashU32 = base64ToUint32Array(data.pbkdf2Hash)
+                const iterator = randomPool[Symbol.iterator]()
+                const asyncChunks = 32
+                let promises = []
+                let answer = null
+                let tries = 0
+
+                // Find the answer
+                while (!answer) {
+                    tries++;
+                    const {value, done} = iterator.next()
+
+                    if (!done) {
+                        const hexString = value.toString(16).padStart(2, "0")
+                        const testToken = data.token.replace("??", hexString)
+                        promises.push(verifyPbkdf2(hashU32, testToken, data.sign, data.pbkdf2Iter))
+                    }
+
+                    if (promises.length >= asyncChunks || done) {
+                        const testResults = await Promise.all(promises)
+                        promises = []
+                        answer = testResults.find(Boolean)
+                    }
+
+                    if (done) { break }
                 }
 
+                // No possible answer?
+                if (!answer) {
+                    throw "No possible answer with challange"
+                }
+
+                console.log("calculateChallenge(): Found answer in", tries, "tries! (took", performance.now() - timeStart, "ms)")
+
+                // Resolve with the answer
+                const ret = {
+                    challengeToken: answer,
+                    challengeSign: data.sign,
+                }
+
+                resolve(ret)
+                return ret
             } catch (e) {
                 reject(e.toString())
+                throw e.toString()
             } finally {
                 this.challengeValue = undefined
             }
-
         }
 
         async submitComment() {
             const elems = this.querySelector("form")?.elements
             if (!elems) { throw new DOMException("form element does not exist") }
 
+            this.updateStatusText("Calculating hash data...")
+            const challengeData = await this.calculateChallenge().catch(v => null)
+            if (!challengeData) {
+                this.updateErrorText("Error: Failed to calculate hash")
+                return false
+            }
+
             const commentData = {
+                ...challengeData,
                 nickname: elems["nickname"].value ?? "",
                 url: elems["url"].value ?? "",
                 comment: elems["comment"].value ?? "",
             }
 
+            this.updateStatusText("Sending comment...")
             console.log(commentData)
         }
     }
 
     customElements.define("comment-form", CommentFormElement)
+})();
+
+
+
+;(async()=>{
+    function base64ToUint32Array(base64_string) {
+        return Uint8Array.from(atob(base64_string), c => c.charCodeAt(0))
+    }
+    
+    async function Uint32ArrayToBase64(u32) {
+        const buffer = u32.buffer
+        const base64url = await new Promise(r => {
+            const reader = new FileReader()
+            reader.onload = () => r(reader.result)
+            reader.readAsDataURL(new Blob([buffer]))
+        });
+        return base64url.slice(base64url.indexOf(',') + 1);
+    }
+    
+    async function makePbkdf2(token, salt, iterations) {
+        const encoder = new TextEncoder
+        token = encoder.encode(token)
+        salt = encoder.encode(salt)
+    
+        const bits2 = await crypto.subtle
+            .importKey("raw", token, { name: "PBKDF2" }, false, ["deriveBits"])
+            .then(baseKey =>
+                crypto.subtle.deriveBits(
+                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                    baseKey,
+                    128
+                )
+            ).then(arraybuffer => new Uint32Array(arraybuffer))
+    
+        return bits2
+    }
+    
+    /** 
+     * Verify the 128bit sha256 pbkdf2 token with given params.
+     * This function should NOT be used on important security applications.
+     * 
+     * @param {Uint32Array} hashUint32Array
+     * @param {string} token
+     * @param {string} salt
+     * @param {number} iterations 
+     */
+    async function verifyPbkdf2(hashUint32Array, token, salt, iterations) {
+        console.assert(hashUint32Array.__proto__ == Uint32Array.prototype, "Invalid type of hashUint32Array")
+        const encoder = new TextEncoder
+        token = encoder.encode(token)
+        salt = encoder.encode(salt)
+    
+        const bits1 = hashUint32Array
+        const bits2 = await crypto.subtle
+            .importKey("raw", token, { name: "PBKDF2" }, false, ["deriveBits"])
+            .then(baseKey =>
+                crypto.subtle.deriveBits(
+                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+                    baseKey,
+                    128
+                )
+            ).then(arraybuffer => new Uint32Array(arraybuffer))
+        
+        return (bits1.length == bits2.length) && bits2.every((v, k) => v === bits1[k])
+    }
+    
+    ;(async ()=>{
+        const token = "00654c4e58-5a8f3eed-1b56-4e3c-b88f-c1753b6396bf"
+        const sign = "WnEaaFyjOhOwU5IdJuTyA5renLb6n/U9QpUsss2qhvk="
+        const iter = 20000
+        const hash = await makePbkdf2(token, sign, iter).then(Uint32ArrayToBase64)
+        console.log(JSON.stringify({
+            token,
+            sign,
+            pbkdf2Hash: hash,
+            pbkdf2Iter: iter,
+        }, undefined, 4))
+    })()
+    
 })();

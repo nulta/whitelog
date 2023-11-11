@@ -4,6 +4,7 @@
     --color-primary: #00ffcc;
     --color-secondary: #00ccff;
     --color-hyperlink: #1ec5a4;
+    --color-error: #ff145a;
     --color-backdrop: #ffffff;
     --color-background: #fafafa;
     --color-content: #222;
@@ -359,16 +360,12 @@ main > article {
 
     & section.comments .add-comment-box {
         display: grid;
-        grid-template-areas:
-            "A1 A2"
-            "B1 B2"
-            "C  C "
-            ".  D ";
+        grid-auto-columns: min-content 1fr min-content;
+        grid-auto-flow: row;
         column-gap: 0.6rem;
         row-gap: 0.5rem;
-        grid-template-columns: min-content auto;
         align-items: center;
-        
+
         background-color: var(--color-lit-more);
 
         & input, & textarea, & button {
@@ -378,7 +375,8 @@ main > article {
 
         & label {
             font-style: normal;
-            text-align: right;
+            justify-self: end;
+            padding: 4px 0;
         }
 
         & input[type=text], & textarea {
@@ -386,9 +384,11 @@ main > article {
         }
 
         & input[type=text] {
+            grid-column: span 2;
             padding: 3px 4px;
             border: none;
             border-bottom: 1px solid var(--color-dim-less);
+            min-width: 0;
 
             &:focus {
                 outline: none;
@@ -396,27 +396,28 @@ main > article {
                 border-bottom-color: var(--color-hyperlink);
                 padding-bottom: 2px;
             }
+
         }
 
         & textarea {
+            grid-column: span 3;
             display: block;
             width: 100%;
             resize: none;
-            grid-area: C;
-            margin: 0.5rem 0 0 0;
+            margin: 2px 0 0 0;
             border: none;
             
-            line-height: 1.9em;
-            min-height: calc(4lh);
+            ---line-height: 1.9em;
+            line-height: var(---line-height);
+            min-height: calc(var(---line-height) * 4);
             background-attachment: local;
             background-image: repeating-linear-gradient(
                 transparent,
-                transparent      calc(1lh - 1px),
-                var(--color-dim-less) calc(1lh - 1px),
-                var(--color-dim-less) calc(1lh),
-                transparent      calc(1lh)
+                transparent      calc(var(---line-height) - 1px),
+                var(--color-dim-less) calc(var(---line-height) - 1px),
+                var(--color-dim-less) calc(var(---line-height)),
+                transparent      calc(var(---line-height))
             );
-            /* background-position-y: 5px; */
             padding: 0 4px;
             
             &::placeholder {
@@ -428,12 +429,12 @@ main > article {
         }
 
         & button {
-            grid-area: D;
+            grid-column: 3;
+            grid-row: 4;
+            justify-self: end;
             border: 1px solid var(--color-dim);
             cursor: pointer;
-            width: 100%;
-            max-width: 8em;
-            justify-self: end;
+            width: 8em;
             padding: 1px 6px;
 
             &:focus {
@@ -442,5 +443,24 @@ main > article {
                 padding: 0px 5px;
             }
         }
+
+        & .status-display {
+            grid-column: span 2;
+            grid-row: 4;
+            font-weight: normal;
+            margin: 0 0 0 4px;
+
+            &.error {
+                color: var(--color-error);
+            }
+        }
+        
+        @media (max-width: 500px) {
+            /* 갑자기 분위기 flex; */
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
     }
 }
