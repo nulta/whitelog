@@ -333,8 +333,8 @@ main > article {
         }
     }
 
-    & section.comments > button.add-comment,
-    & section.comments > .add-comment-box {
+    & section.comments button.add-comment,
+    & section.comments .add-comment-box {
         font-family: inherit;
         margin-top: 1em;
         font-size: 1em;
@@ -348,7 +348,7 @@ main > article {
         color: var(--color-dim);
     }
 
-    & section.comments > button.add-comment {
+    & section.comments button.add-comment {
         background-color: var(--color-lit);
         cursor: text;
 
@@ -357,7 +357,7 @@ main > article {
         }
     }
 
-    & section.comments > .add-comment-box {
+    & section.comments .add-comment-box {
         display: grid;
         grid-template-areas:
             "A1 A2"
@@ -422,18 +422,8 @@ main > article {
             &::placeholder {
                 font-style: italic;
             }
-
             &:focus {
-                /* outline: 2px color-mix(in srgb, transparent, var(--color-hyperlink) 50%) solid;
-                outline-offset: 0px; */
                 outline: none;
-                background-image: repeating-linear-gradient(
-                transparent,
-                transparent      calc(1lh - 2px),
-                var(--color-hyperlink) calc(1lh - 2px),
-                var(--color-hyperlink) calc(1lh),
-                transparent      calc(1lh)
-            );
             }
         }
 
@@ -444,6 +434,13 @@ main > article {
             width: 100%;
             max-width: 8em;
             justify-self: end;
+            padding: 1px 6px;
+
+            &:focus {
+                outline: none;
+                border: 2px solid var(--color-hyperlink);
+                padding: 0px 5px;
+            }
         }
     }
 }
