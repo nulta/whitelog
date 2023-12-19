@@ -11,6 +11,7 @@ addEventListener("DOMContentLoaded", () => {
         "site.ownerName": "nulta",
 
         // Post data
+        "post.id": "wKV7",
         "post.name": "글 이름",
         "post.author": "nulta",
         "post.time": "2023-10-27",
@@ -73,6 +74,10 @@ addEventListener("DOMContentLoaded", () => {
         )
     }
 
+    function getCurrentPostId() {
+        return document.documentElement.getAttribute("data-post-id") ?? null
+    }
+
     /**
      * Verify the 128bit sha256 pbkdf2 token with given params.
      * This function should NOT be used on important security applications.
@@ -109,10 +114,25 @@ addEventListener("DOMContentLoaded", () => {
     class CommentFormElement extends HTMLElement {
         constructor() {super()}
 
-        connectedCallback() {
-            this.innerHTML = html`
+        static html = {
+            initial: html`
                 <button class="add-comment">Add comment</button>
-            `;
+            `,
+            commentBox: html`
+                <form class="add-comment-box">
+                    <label for="add-comment-box-name">Name</label>
+                    <input tabindex="0" type="text" id="add-comment-box-name" name="nickname" placeholder=""/>
+                    <label for="add-comment-box-url">Website/SNS</label>
+                    <input tabindex="0" type="text" id="add-comment-box-url" name="url" placeholder="Not specified" />
+                    <textarea placeholder="Add comment" name="comment" maxlength="500" autofocus></textarea>
+                    <p class="status-display"></p>
+                    <button name="submit">Submit</button>
+                </form>
+            `,
+        };
+
+        connectedCallback() {
+            this.innerHTML = CommentFormElement.html.initial
 
             this.querySelector("button")
                 ?.addEventListener("mousedown", ev => {
@@ -122,17 +142,7 @@ addEventListener("DOMContentLoaded", () => {
         }
 
         openCommentBox() {
-            this.innerHTML = html`
-                <form class="add-comment-box">
-                    <label for="add-comment-box-name">Name</label>
-                    <input tabindex="0" type="text" id="add-comment-box-name" name="nickname" placeholder="Anonymous 2513"/>
-                    <label for="add-comment-box-url">Website/SNS</label>
-                    <input tabindex="0" type="text" id="add-comment-box-url" name="url" placeholder="Not specified" />
-                    <textarea placeholder="Add comment" name="comment" maxlength="500" autofocus></textarea>
-                    <p class="status-display"></p>
-                    <button name="submit">Submit</button>
-                </form>
-            `;
+            this.innerHTML = CommentFormElement.html.commentBox
 
             const form = this.querySelector("form")
             const elems = form.elements
@@ -140,6 +150,8 @@ addEventListener("DOMContentLoaded", () => {
             const {nickname, url} = this.getUserData()
             elems.nickname.value = nickname
             elems.url.value = url
+
+            elems.nickname.placeholder = "Anonymous {0}".replace("{0}", (Math.random() * 10000).toFixed(0))
 
             elems["comment"].addEventListener("input", ev => {
                 ev.target.style.height = undefined
@@ -277,88 +289,26 @@ addEventListener("DOMContentLoaded", () => {
             }
 
             this.updateStatusText("Sending comment...")
+                        
+            const postId = getCurrentPostId()
+            if (!postId) {
+                return this.updateErrorText("Cannot find data-post-id")
+            }
+            
             console.log(commentData)
+            const result = await fetch(`/~api/post/${postId}/comment`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(commentData),
+            }).then(res => res.json()).catch(e => ({error: e.toString()}))
+
+            if (result.error) {
+                return this.updateErrorText(`Error sending comment: ${result.error ?? "Unknown error"}`)
+            }
+
+            this.updateStatusText("OK!")
         }
     }
 
     customElements.define("comment-form", CommentFormElement)
-})();
-
-
-
-;(async()=>{
-    function base64ToUint32Array(base64_string) {
-        return Uint8Array.from(atob(base64_string), c => c.charCodeAt(0))
-    }
-    
-    async function Uint32ArrayToBase64(u32) {
-        const buffer = u32.buffer
-        const base64url = await new Promise(r => {
-            const reader = new FileReader()
-            reader.onload = () => r(reader.result)
-            reader.readAsDataURL(new Blob([buffer]))
-        });
-        return base64url.slice(base64url.indexOf(',') + 1);
-    }
-    
-    async function makePbkdf2(token, salt, iterations) {
-        const encoder = new TextEncoder
-        token = encoder.encode(token)
-        salt = encoder.encode(salt)
-    
-        const bits2 = await crypto.subtle
-            .importKey("raw", token, { name: "PBKDF2" }, false, ["deriveBits"])
-            .then(baseKey =>
-                crypto.subtle.deriveBits(
-                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                    baseKey,
-                    128
-                )
-            ).then(arraybuffer => new Uint32Array(arraybuffer))
-    
-        return bits2
-    }
-    
-    /** 
-     * Verify the 128bit sha256 pbkdf2 token with given params.
-     * This function should NOT be used on important security applications.
-     * 
-     * @param {Uint32Array} hashUint32Array
-     * @param {string} token
-     * @param {string} salt
-     * @param {number} iterations 
-     */
-    async function verifyPbkdf2(hashUint32Array, token, salt, iterations) {
-        console.assert(hashUint32Array.__proto__ == Uint32Array.prototype, "Invalid type of hashUint32Array")
-        const encoder = new TextEncoder
-        token = encoder.encode(token)
-        salt = encoder.encode(salt)
-    
-        const bits1 = hashUint32Array
-        const bits2 = await crypto.subtle
-            .importKey("raw", token, { name: "PBKDF2" }, false, ["deriveBits"])
-            .then(baseKey =>
-                crypto.subtle.deriveBits(
-                    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-                    baseKey,
-                    128
-                )
-            ).then(arraybuffer => new Uint32Array(arraybuffer))
-        
-        return (bits1.length == bits2.length) && bits2.every((v, k) => v === bits1[k])
-    }
-    
-    ;(async ()=>{
-        const token = "00654c4e58-5a8f3eed-1b56-4e3c-b88f-c1753b6396bf"
-        const sign = "WnEaaFyjOhOwU5IdJuTyA5renLb6n/U9QpUsss2qhvk="
-        const iter = 20000
-        const hash = await makePbkdf2(token, sign, iter).then(Uint32ArrayToBase64)
-        console.log(JSON.stringify({
-            token,
-            sign,
-            pbkdf2Hash: hash,
-            pbkdf2Iter: iter,
-        }, undefined, 4))
-    })()
-    
-})();
+})()
