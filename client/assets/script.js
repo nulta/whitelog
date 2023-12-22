@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-extra-semi
 
 // [DEBUG] placeholder replacement
 addEventListener("DOMContentLoaded", () => {
