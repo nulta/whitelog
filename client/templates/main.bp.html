@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="{{site.lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="{{site.name}}">
+    <meta name="description" content="{{site.description}}">
+    <link rel="stylesheet" href="/assets/css/index.css">
+    <script src="/assets/js/index.js"></script>
+    <title>{{site.name}}</title>
+</head>
+<body>
+    <ref! import="site-header"></ref!>
+    <main>
+        <p>{{site.description}}</p>
+
+        <section class="post-list">
+            <h2>Posts</h2>
+            <for! var="post" of="posts" limit="10">
+                <a class="post-card" href="{{post.href}}" style="background-image: url('{{post.poster}}')">
+                    <article>
+                        <strong>{{post.title}}</strong>
+                        <div class="info">
+                            <time datetime="{{post.date}}">{{post.date}}</time>
+                            <span class="author">{{post.author}}</span>
+                        </div>
+                        <p>{{post.description}}</p>
+                    </article>
+                </a>
+            </for!>
+            <if! cond="posts[3]">
+                <a class="see-more-block" href="/list">더 보기</a>
+            </if!>
+        </section>
+
+        <section class="tag-list">
+            <h2>Tags</h2>
+            <for! var="tag" of="tags">
+                <a class="tag-link" href="/tags/{{tag}}">{{tag}}</a>
+            </for!>
+        </section>
+    </main>
+    <ref! import="site-footer"></ref!>
+</body>
+</html>

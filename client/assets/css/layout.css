@@ -1,0 +1,160 @@
+
+body {
+    color: var(--color-content);
+    background-color: var(--color-backdrop);
+    font-family: var(--font-family);
+
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header.site-header {
+    background-color: var(--color-backdrop);
+
+    width: 100%;
+    height: 15rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    & .logo {
+        font-size: 2.5rem;
+        font-weight: bold;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    & :link, & :visited {
+        text-decoration: none;
+        color: var(--color-content)
+    }
+
+    & nav {
+        color: var(--color-dim);
+
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 0 1em;
+        gap: 1em;
+
+        & a:any-link {
+            font-weight: bold;
+        }
+
+        & a:any-link:is(:focus, :hover) {
+            text-decoration: 3px dotted underline #00000066;
+            text-underline-offset: 2px;
+            text-decoration-skip-ink: none;
+        }
+    }
+}
+
+main {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-dim);
+
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem 3rem;
+    flex-grow: 1;
+
+    @media screen and (max-width: var(--max-width)) {
+        border-block: none;
+    }
+
+    @media screen and (max-width: 600px) {
+        padding: 2rem 2rem;
+    }
+}
+
+footer.site-footer {
+    height: 7rem;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 2rem;
+    padding: 0 1rem;
+    font-size: 80%;
+}
+
+
+article.post-content {
+    & > header {
+        margin-block-end: 2rem;
+
+        & > h1 {
+            font-size: 2.5rem;
+            margin-block-end: 0rem;
+        }
+
+        & > .subtitle {
+            opacity: 0.7;
+            word-break: keep-all;
+            
+            /* padding-block: 1px; */
+            min-width: 50%;
+            max-height: 2lh;
+            
+            /* suprisingly, it's also supported in firefox */
+            display: -webkit-box;
+            overflow: hidden;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+
+            &:empty {
+                display: none;
+            }
+        }
+
+        & > .info {
+            opacity: 0.5;
+            font-size: 0.9em;
+
+            & time::before {
+                content: "";
+            }
+
+            & > .author, & > .date {
+                display: inline-block;
+            }
+
+            & > .author::before {
+                content: "— ";
+            }
+        }
+
+        & > .tags {
+            float: right;
+            position: relative;
+            z-index: 1;
+
+            list-style: none;
+            display: flex;
+
+            padding: 0;
+            margin: 0;
+
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+    }
+
+    section.content {
+        & > p {
+            margin-block: 0.5rem;
+            text-indent: 1em;
+            text-align: justify;
+            line-height: 1.65em;
+        }
+    }
+}

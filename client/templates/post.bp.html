@@ -1,46 +1,36 @@
 <!DOCTYPE html>
-<html lang="{{#site.lang}}" data-post-id="{{#post.id}}">
+<html lang="{{site.lang}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="title" content="{{#site.name}}">
-    <meta name="description" content="{{#site.description}}">
-    <link rel="stylesheet" href="/assets/style.css">
-    <script src="/assets/script.js"></script>
-    <script src="/assets/elements.js"></script>
-    <title>{{#post.name}} - {{#site.name}}</title>
+    <meta name="title" content="{{site.name}}">
+    <meta name="description" content="{{site.description}}">
+    <link rel="stylesheet" href="/assets/css/index.css">
+    <script src="/assets/js/index.js"></script>
+    <title>{{post.title}} - {{site.name}}</title>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <a href="/">{{#site.name}}</a>
-        </div>
-        <nav>
-            <a href="/about">About</a>
-            <a href="/tags">Tags</a>
-            <a href="/list">Posts</a>
-            <a href="/rss">RSS</a>
-        </nav>
-    </header>
+    <ref! import="site-header"></ref!>
     <main>
-        <article>
-            <hgroup>
-                <h1>{{#post.name}}</h1>
-                <div class="info">
-                    <time datetime="{{#post.time}}+0900">{{#post.time}}</time>
-                    <span class="author">{{#post.author}}</span>
-                </div>
+        <article class="post-content">
+            <header>
+                <h1>{{post.title}}</h1>
                 <ul class="tags">
-                    <li><a href="/tags/asdf">#asdf</a></li>
-                    <li><a href="/tags/qwer">#qwer</a></li>
-                    <li><a href="/tags/tyuloqq">#TyuLoqQ</a></li>
+                    <for! var="tag" of="post.tags">
+                        <li><a class="tag-link" href="/tags/{{tag}}">{{tag}}</a></li>
+                    </for!>
                 </ul>
-            </hgroup>
-            
+                <p class="subtitle">{{post.description}}</p>
+                <div class="info">
+                    <time datetime="{{post.date}}">{{post.date}}</time>
+                    <span class="author">{{post.author}}</span>
+                </div>
+            </header>
+
             <section class="content">
-                <<#post.content>>
+                <ref! var="post.content"></ref>
             </section>
-            
+
             <section class="relations">
                 <h2>Related posts</h2>
                 <!-- 상호 링크하는 글, 링크된 글, 역링크 글 -->
@@ -50,7 +40,7 @@
                     <li class="inlink"><a href="/qbc6">backlink</a></li>
                 </ul>
             </section>
-            
+
             <section class="comments">
                 <h2>Comments</h2>
                 <article>
@@ -98,12 +88,6 @@
             </section>
         </article>
     </main>
-    <footer>
-        <p>
-            <strong>{{#site.name}}</strong><br>
-            powered by whitelog<br>
-            from <a href="/about">{{#site.ownerName}}</a> with &lt;3 <br>
-        </p>
-    </footer>
+    <ref! import="site-footer"></ref!>
 </body>
 </html>
