@@ -234,177 +234,533 @@ export class BlackPrintTemplate<const T extends TemplateData> {
     }
 
 
-    /** variable, for example, could be:
-     * - `3.14`             -> literal number
-     * - `foo`              -> variable foo
-     * - `foo1.bar.baz`     -> nested object
-     * - `foo[1]`           -> array element
-     * - `foo.bar[bar.baz]` -> nested object with dynamic key
-     * 
-     * so, they can use 2 operators: dot and square brackets.
-     */
+
     private evaluateExpression(expr: string, data: T): TemplateData | PrimitiveType {
-        // tokenize the expression
-        const tokens = expr.split(
-            /([a-zA-Z_][a-zA-Z_0-9]*|[+-]?(?:[0-9]+)?[.]?(?:[0-9]+)?|\.|\[|\])/
-        ).filter(x => x?.trim())
-
-        // stack the [] operators
-        const stackedTokens: DeepStringStack = []
-        const workStack = [stackedTokens]
-        for (const token of tokens) {
-            const current = workStack[workStack.length - 1]
-
-            if (token == "[") {
-                const newStack: DeepStringStack = []
-                current.push(newStack)
-                workStack.push(newStack)
-            } else if (token == "]") {
-                workStack.pop()
-            } else if (token == ".") {
-                // skip this token
-            } else {
-                current.push(token)
-            }
-        }
-
-        // evaluate the tokens
-        try {
-            return this.evaluateExpressionTokens(stackedTokens, data, data)
-        } catch (_) {
-            throw new Error(`Failed to parse expression: ${expr}`)
-        }
-    }
-
-    // i hate this code
-    // deno-lint-ignore no-explicit-any
-    private evaluateExpressionTokens(tokens: DeepStringStack | string, env: any, data: T): any {
-        // parse a single token
-        if (typeof tokens === "string") {
-            const token = tokens
-
-            if (/^[+-]?([0-9]+|[0-9]*\.[0-9]*)$/.test(token)) {
-                // number literal
-                return Number(token)
-
-            } else if (/^[a-zA-Z_][a-zA-Z_0-9]*$/.test(token)) {
-                // variable name
-                return token
-
-            } else {
-                // invalid?
-                throw new Error(`Invalid token: ${token}`)
-            }
-        }
-
-        if (tokens.length == 0) {
-            throw new Error("Invalid token: []")
-        }
-
-        // reduce the array
-        env = data
-        for (const token of tokens) {
-            const ref = this.evaluateExpressionTokens(token, env, data)
-
-            if (ref == null) {
-                return null
-            }
-
-            if (!["object", "string"].includes(typeof env)) {
-                throw new Error(`Cannot access property ${token} of non-object`)
-            }
-
-            if (typeof ref == "number" && env === data) {
-                env = ref
-            } else {
-                if (Object.hasOwn(env, ref)) {
-                    env = env[ref] ?? null
-                } else {
-                    env = null
-                }
-            }
-
-            if (env == null) {
-                return null
-            }
-        }
-
-        return env
+        const val = BlackPrintExpressionParser.parse(expr, data)
+        return val
     }
 }
 
-// test
-// const template = `
-// <!DOCTYPE html>
-// <html lang="en">
-// <head>
-//     <meta charset="UTF-8">
-//     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//     <title>Document</title>
-// </head>
-// <body>
-//     <for! var="x" of="10">
-//         <div>
-//             <h1>
-//                 This is iteration no. {{x}}. hello.
-//             </h1>
-//         </div>
-//     </for!>
 
-//     <if! not cond="asdf">
-//         <div>hello</div>
-//     </if!>
+type ExprToken =
+    | { t: "number", v: number }
+    | { t: "string", v: string }
+    | { t: "name", v: string }
+    | { t: "op", v: string }
+    | { t: "paren", v: string }
+    | { t: "elemParen", v: string }
 
-//     <for! var="comment" of="comments">
-//         <article is-owner={{comment.isOwner}}>
-//             <h1>
-//                 {{comment.author}} said:
-//             </h1>
-//             <p>
-//                 {{comment.text}}
-//             </p>
-//         </article>
-//     </for!>
-//     <if! cond="comments" is-empty>
-//         <p>No comments yet.</p>
-//     </if!>
+type _ExprTokenExpectation<T extends ExprToken> = T | { t: T["t"] }
+type ExprTokenExpectation = _ExprTokenExpectation<ExprToken>
 
-//     <div class="container {{hello}}">
-//         <h1>
-//             Hello, {{name}}!
-//         </h1>
-//         <p>
-//             Your age is {{age}}.
-//         </p>
-//         <span {{prop}}={{age}}></span>
-//     </div>
+type AstNode =
+    | {t: "number", v: number}
+    | {t: "string", v: string}
+    | {t: "name", v: string}
+    | {t: "element", o: AstNode, p: AstNode}
+    | {t: "op.div", l: AstNode, r: AstNode}
+    | {t: "op.divfloor", l: AstNode, r: AstNode}
+    | {t: "op.mul", l: AstNode, r: AstNode}
+    | {t: "op.mod", l: AstNode, r: AstNode}
+    | {t: "op.add", l: AstNode, r: AstNode}
+    | {t: "op.sub", l: AstNode, r: AstNode}
+    | {t: "op.lt", l: AstNode, r: AstNode}
+    | {t: "op.gt", l: AstNode, r: AstNode}
+    | {t: "op.leq", l: AstNode, r: AstNode}
+    | {t: "op.geq", l: AstNode, r: AstNode}
+    | {t: "op.eq", l: AstNode, r: AstNode}
+    | {t: "op.neq", l: AstNode, r: AstNode}
+    | {t: "op.ternary", a: AstNode, b: AstNode, c: AstNode}
 
-//     <ref! data="content">
-//     </ref!>
+type ExprReturns = TemplateData | PrimitiveType
 
-// </body>
-// </html>
-// `
+/** variable, for example, could be:
+ * - `3.14`             -> literal number
+ * - `foo`              -> variable foo
+ * - `foo1.bar.baz`     -> nested object
+ * - `foo[1]`           -> array element
+ * - `foo.bar[bar.baz]` -> nested object with dynamic key
+ * 
+ * they have those operators and things:
+ * - **precedence 0**
+ * - `(a)`              -> parentheses
+ * - `a.b`              -> access object property (b is literal)
+ * - `a[b]`             -> access array element
+ * - `!a`               -> not
+ * - **precedence 1**
+ * - `a * b`            -> multiplication (also works with strings)
+ * - `a % b`            -> modulo
+ * - `a / b`            -> division
+ * - `a // b`           -> division (floor)
+ * - **precedence 2**
+ * - `a + b`            -> addition (also works with strings)
+ * - `a - b`            -> subtraction
+ * - **precedence 3**
+ * - `||` `&&`          -> logical or, logical and
+ * - **precedence 4**
+ * - `a < b`  `a > b`   -> less than, greater than
+ * - `a <= b` `a >= b`  -> less than or equal, greater than or equal
+ * - `a == b` `a != b`  -> equal, not equal
+ * - **precedence 5**
+ * - `a ? b : c`        -> ternary operator
+ * 
+ * literals:
+ * - `3.14`             -> number
+ * - `"foo"`            -> string
+*/
+class BlackPrintExpressionParser {
+    private tokens: ExprToken[]
+    private data: TemplateData
 
-// const bp = new BlackPrintTemplate(template)
-// bp.render({comments: []})
-// bp.render({comments: []})
-// bp.render({comments: []})
+    private constructor(tokens: ExprToken[], data: TemplateData) {
+        this.tokens = tokens
+        this.data = data
+    }
 
-// console.time("render")
-// console.log(bp.render({
-//     name: "Alice",
-//     age: 17,
-//     prop: null,
-//     comments: [{
-//         isOwner: true,
-//         author: "Alice",
-//         text: "Hello world",
-//     }, {
-//         isOwner: false,
-//         author: "John Doe",
-//         text: "Hello world 2",
-//     }],
-//     content: "<p>hello, world</p>",
-// }))
-// console.timeEnd("render")
+    public static parse(expr: string, data: TemplateData) {
+        const parser = new BlackPrintExpressionParser(this.tokenize(expr), data)
+        return parser.evalTokens()
+    }
+
+    private static tokenize(expr: string): ExprToken[] {
+        // i hate this regex
+        return expr.match(
+            /(\".*?\"|\'.*?\'|[a-zA-Z_][a-zA-Z_0-9]*|[+-]?(?:\d+\.?\d*|\.\d+)|(?:[<>!=]=|&&|\|\|)|[\!<>\[\]\(\)\-.+/*%?:]|[^\s])/g
+        )!.map(token => {
+            if (token.match(/^[+-]?(?:\d+\.?\d*|\.\d+)$/)) {
+                return { t: "number", v: parseFloat(token) }
+            }
+            if (token.match(/^[a-zA-Z_][a-zA-Z_0-9]*$/)) {
+                return { t: "name", v: token }
+            }
+            if (token.match(/^((?:[<>!=]=|&&|\|\|)|[\!<>\-.+/*%?:])$/)) {
+                return { t: "op", v: token }
+            }
+            if (token.match(/^[\(\)]$/)) {
+                return { t: "paren", v: token }
+            }
+            if (token.match(/^[\[\]]$/)) {
+                return { t: "elemParen", v: token }
+            }
+            if (token.match(/^(\".*\"|\'.*\')$/)) {
+                return { t: "string", v: token.slice(1, -1) }
+            }
+            throw new Error(`Invalid token: ${token}`)
+        })
+    }
+
+
+    private evalTokens(): ExprReturns {
+        const val = this.evalOp5()
+        return val
+    }
+
+
+    private peek(index = 0) {
+        return this.tokens[index]
+    }
+
+    private pop() {
+        return this.tokens.shift()
+    }
+
+    private isEmpty() {
+        return this.tokens.length == 0
+    }
+
+
+    private checkToken(expected: ExprTokenExpectation, index = 0) {
+        const token = this.peek(index)
+        if (token != undefined && token.t == expected.t) {
+            if (!("v" in expected) || token.v == expected.v) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private expectToken<T extends ExprTokenExpectation>(expected: T) {
+        if (!this.checkToken(expected)) {
+            const token = this.peek()
+            throw new Error(
+                `Expected ${expected.t} (${"v" in expected ? expected.v : "?"}) but got ${token?.t}(${token?.v})`
+            )
+        }
+        return this.pop()! as { t: T["t"], v: T["t"] extends "number" ? number : string }
+    }
+
+    private assertNumber(value: ExprReturns): asserts value is number {
+        if (typeof value != "number") {
+            throw new Error(`Expected number but got ${value}`)
+        }
+    }
+
+    private assertNumberOrString(value: ExprReturns): asserts value is number | string {
+        if (typeof value != "number" && typeof value != "string") {
+            throw new Error(`Expected number or string but got ${value}`)
+        }
+    }
+
+
+    private resolveName(name: string): PrimitiveType | TemplateData {
+        switch (name) {
+            case "true":
+                return true
+            case "false":
+                return false
+            case "null":
+                return null
+        }
+
+        return this.resolveElement(this.data, name)
+    }
+
+    private resolveElement(obj: PrimitiveType | TemplateData, key: string | number): PrimitiveType | TemplateData {
+        if (typeof obj == "string" || obj instanceof Array) {
+            if (typeof key == "number") {
+                return obj.at(key) ?? ""
+            } else if (key == "length") {
+                return obj.length
+            } else {
+                throw new Error(`String and Array object only has a length property and array-like access, not ${key}`)
+            }
+        }
+
+        if (obj instanceof Object) {
+            if (Object.hasOwn(obj, key)) {
+                return obj[key]
+            } else {
+                throw new Error(`The object does not have key ${key}`)
+            }
+        }
+
+        throw new Error(`Cannot access property ${key} of a non-object`)
+    }
+
+
+    /**
+     * **precedence 0 (latest)**
+     * - `(expr)`
+     * - `name`
+     * - `expr.name`
+     * - `expr[expr]`
+     * - `number` or `string`
+    */
+    private evalOp0(): ExprReturns {
+        if (this.isEmpty()) {
+            return null
+        }
+
+
+        let value: ExprReturns
+        if (this.checkToken({ t: "paren", v: "(" })) {
+            // `(expr)`
+            this.pop()
+            value = this.evalTokens()
+            this.expectToken({ t: "paren", v: ")" })
+        } else if (this.checkToken({ t: "name" })) {
+            // `name.name2` | `name[expr]`
+            const varName = this.pop()!.v as string
+            const varValue = this.resolveName(varName)
+
+            // `name`
+            // return varValue
+            value = varValue
+        } else if (this.checkToken({ t: "number" }) || this.checkToken({ t: "string" })) {
+            // literals
+            value = this.pop()!.v
+        } else {
+            console.warn("unexcepted token", this.peek())
+            return null
+        }
+
+        // `expr.name` or `expr[expr]`
+        let isChanged = true
+        while (isChanged) {
+            isChanged = false
+
+            // `expr.name`
+            if (this.checkToken({ t: "op", v: "." })) {
+                this.pop()
+                const key = this.expectToken({ t: "name" })
+                isChanged = true
+                value = this.resolveElement(value, key.v)
+            }
+    
+            // `expr[expr]`
+            if (this.checkToken({ t: "elemParen", v: "[" })) {
+                this.pop()
+                const right = this.evalTokens()
+                this.expectToken({ t: "elemParen", v: "]" })
+    
+                // `name[expr]` is null-forgiving
+                if (right == null) {
+                    // TODO: should we??
+                    isChanged = true
+                    value = null
+                } else {
+                    this.assertNumberOrString(right)
+                    isChanged = true
+                    value = this.resolveElement(value, right)
+                }
+            }
+        }
+
+        return value
+    }
+
+    /**
+     * **precedence 1**
+     * - `!expr`
+     * - `a * b`
+     * - `a / b`
+     * - `a // b`
+     * - `a % b`
+     */
+    private evalOp1(): ExprReturns {
+        // `!expr`
+        if (this.checkToken({ t: "op", v: "!" })) {
+            this.pop()
+            return !this.evalOp1()
+        }
+
+        // `* / // %`
+        const left = this.evalOp0()
+        if (this.checkToken({ t: "op", v: "*" })) {
+            this.assertNumberOrString(left)
+            this.pop()
+            const right = this.evalOp1()
+            this.assertNumber(right)
+
+            if (typeof left == "string") {
+                return left.repeat(right)
+            } else {
+                return left * right
+            }
+        }
+
+        if (this.checkToken({ t: "op", v: "/" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp1()
+            this.assertNumber(right)
+            return left / right
+        }
+
+        if (this.checkToken({ t: "op", v: "//" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp1()
+            this.assertNumber(right)
+            return Math.floor(left / right)
+        }
+
+        if (this.checkToken({ t: "op", v: "%" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp1()
+            this.assertNumber(right)
+            return left % right
+        }
+
+        return left
+    }
+
+    /**
+     * - **precedence 2**
+     * - `a + b`            -> addition (also works with strings)
+     * - `a - b`            -> subtraction
+     */
+    private evalOp2(): ExprReturns {
+        const left = this.evalOp1()
+        // `+ -`
+        if (this.checkToken({ t: "op", v: "+" })) {
+            this.assertNumberOrString(left)
+            this.pop()
+            const right = this.evalOp2()
+            this.assertNumberOrString(right)
+
+            if (typeof left == "string" || typeof right == "string") {
+                return "" + left + right
+            } else {
+                return left + right
+            }
+        }
+
+        if (this.checkToken({ t: "op", v: "-" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp2()
+            this.assertNumber(right)
+            return left - right
+        }
+
+        return left
+    }
+
+    /**
+     * **precedence 3**
+     * - `a < b`  `a > b`   -> less than, greater than
+     * - `a <= b` `a >= b`  -> less than or equal, greater than or equal
+     * - `a == b` `a != b`  -> equal, not equal
+     */
+    private evalOp3(): ExprReturns {
+        const left = this.evalOp2()
+
+        // `== !=`
+        if (this.checkToken({ t: "op", v: "==" })) {
+            this.pop()
+            const right = this.evalOp3()
+            return left == right
+        }
+
+        if (this.checkToken({ t: "op", v: "!=" })) {
+            this.pop()
+            const right = this.evalOp3()
+            return left != right
+        }
+
+        // `< > <= >=`
+        if (this.checkToken({ t: "op", v: "<" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp3()
+            this.assertNumber(right)
+            return left < right
+        }
+
+        if (this.checkToken({ t: "op", v: ">" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp3()
+            this.assertNumber(right)
+            return left > right
+        }
+
+        if (this.checkToken({ t: "op", v: "<=" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp3()
+            this.assertNumber(right)
+            return left <= right
+        }
+
+        if (this.checkToken({ t: "op", v: ">=" })) {
+            this.assertNumber(left)
+            this.pop()
+            const right = this.evalOp3()
+            this.assertNumber(right)
+            return left >= right
+        }
+
+        return left
+    }
+
+    /**
+     * **precedence 4-1**
+     * - `&&`          -> logical and
+     */
+    private evalOp4_1(): ExprReturns {
+        const left = this.evalOp3()
+        // `&&`
+        if (this.checkToken({ t: "op", v: "&&" })) {
+            this.pop()
+            const right = this.evalOp4_1()
+            return left && right
+        }
+
+        return left
+    }
+
+    /**
+     * **precedence 4**
+     * - `||`          -> logical or
+     */
+    private evalOp4(): ExprReturns {
+        const left = this.evalOp4_1()
+        // `||`
+        if (this.checkToken({ t: "op", v: "||" })) {
+            this.pop()
+            const right = this.evalOp4()
+            return left || right
+        }
+
+        return left
+    }
+
+
+    /**
+     * **precedence 5**
+     * - `a ? b : c`        -> ternary operator
+     */
+    private evalOp5(): ExprReturns {
+        // `? :`
+        const cond = this.evalOp4()
+        if (this.checkToken({ t: "op", v: "?" })) {
+            this.pop()
+            const a = this.evalOp4()
+            this.expectToken({ t: "op", v: ":" })
+            const b = this.evalOp4()
+            return cond ? a : b
+        }
+
+        return cond
+    }
+}
+
+// expression test
+;(() => {
+    const data = {
+        a: {b: 3},
+        c: 5,
+        d: "hello",
+        e: [1, 2, 3],
+        tr: true,
+        fa: false,
+        x: {y: {z: {a: {b: 10}}}}
+    }
+
+    function expr(exp: string) {
+        return BlackPrintExpressionParser.parse(exp, data)
+    }
+
+    // deno-lint-ignore no-explicit-any
+    function assertEq(value: string, expected: any) {
+        if (expr(value) !== expected) {
+            console.log("")
+            console.error("Assertion failed from:", value)
+            console.error("Evaluated to:", expr(value))
+            console.error("Expected:", expected)
+            console.trace()
+            console.log("")
+        }
+    }
+
+    assertEq(`3`, 3)
+    assertEq(`a.b`, 3)
+    assertEq(`c`, 5)
+    assertEq(`c + c`, 10)
+    assertEq(`c + c + c`, 15)
+    assertEq(`a.b * c`, 15)
+    assertEq(`c + a.b * c + c`, 25)
+    assertEq(`d == "hello"`, true)
+    assertEq(`d != "hello"`, false)
+    assertEq(`tr || fa`, true)
+    assertEq(`tr && fa`, false)
+
+    assertEq(`d == "hi" || d == "hello"`, true)
+    assertEq(`d == "hi" && d == "hello"`, false)
+    assertEq(`true == (tr && fa) == true`, false)
+    assertEq(`true == (tr || fa) == true`, true)
+    assertEq(`true == (fa || fa || fa) == true`, false)
+    assertEq(`false || false && false || true`, true)
+    assertEq(`true == (fa || fa && fa || tr) == true`, true)
+
+    assertEq(`e[1]`, 2)
+    assertEq(`e.length`, 3)
+    assertEq(`"helloworld".length`, 10)
+    assertEq(`"helloworld"[0]`, "h")
+    assertEq(`"helloworld"[-1]`, "d")
+    assertEq(`x["y"]["z"]["a"]["b"]`, 10)
+    assertEq(`x.y.z.a.b + 10`, 20)
+})()
