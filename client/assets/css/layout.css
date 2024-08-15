@@ -63,7 +63,7 @@ main {
     width: 100%;
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 2rem 3rem;
+    padding: 2.5rem 3rem;
     flex-grow: 1;
 
     @media screen and (max-width: var(--max-width)) {
@@ -87,11 +87,12 @@ footer.site-footer {
 
 article.post-content {
     & > header {
-        margin-block-end: 2rem;
+        margin-block-end: 2.5rem;
 
         & > h1 {
             font-size: 2.5rem;
             margin-block-end: 0rem;
+            font-weight: bold;
         }
 
         & > .subtitle {
@@ -149,12 +150,74 @@ article.post-content {
 
     }
 
-    section.content {
-        & > p {
-            margin-block: 0.5rem;
-            text-indent: 1em;
-            text-align: justify;
+    & section {
+        margin-block: 2.5rem;
+    }
+
+    & section.content {
+        & p {
+            margin-block: 0.75rem;
             line-height: 1.65em;
         }
+
+        & > p {
+            text-indent: 1em;
+            text-align: justify;
+        }
     }
+
+
+    & section.relations {
+        /* for some unknown reason, the selector here does not update the page in Firefox 129.0 */
+        &:not(:has(ul > li)) {
+            display: none;
+        }
+
+        /* and this is a workaround. i have no idea why, but it works. */
+        &:has(ul:-moz-only-whitespace) {
+            content: unset;
+        }
+
+        & ul {
+            list-style: none;
+            padding-inline-start: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        & a:any-link {
+            ---color-hyperlink-3: color-mix(in srgb, var(--color-hyperlink) 10%, transparent);
+
+            display: inline-block;
+            padding: 0.2em 0.5em;
+            font-size: 0.95em;
+            margin-inline: 0.1em;
+
+            transition: background-color 0.1s cubic-bezier(0.23, 1, 0.320, 1);
+            color: var(--color-hyperlink);
+            background-color: var(---color-hyperlink-3);
+            text-decoration: none;
+
+            &:any-link:is(:hover, :focus) {
+                background-color: var(---color-hyperlink-2);
+            }
+
+            li.bothlink &::before {
+                content: "↔ ";
+                font-weight: bold;
+            }
+
+            li.outlink &::before {
+                content: "→ ";
+                font-weight: bold;
+            }
+
+            li.inlink &::before {
+                content: "← ";
+                font-weight: bold;
+            }
+        }
+    }
+
 }

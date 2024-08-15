@@ -6,7 +6,7 @@
     <meta name="title" content="{{site.name}}">
     <meta name="description" content="{{site.description}}">
     <link rel="stylesheet" href="/assets/css/index.css">
-    <script src="/assets/js/index.js"></script>
+    <script type="module" src="/assets/js/index.js"></script>
     <title>{{post.title}} - {{site.name}}</title>
 </head>
 <body>
@@ -32,56 +32,55 @@
             </section>
 
             <section class="relations">
-                <h2>Related posts</h2>
-                <!-- 상호 링크하는 글, 링크된 글, 역링크 글 -->
+                <h2>엮인 글</h2>
                 <ul>
-                    <li class="outlink inlink"><a href="/qbc6">both link</a></li>
-                    <li class="outlink"><a href="/qbc6">outgoing link</a></li>
-                    <li class="inlink"><a href="/qbc6">backlink</a></li>
+                    <for! var="link" of="post.relations">
+                        <li class="{{link.relation + 'link'}}"><a href="{{link.href}}">{{link.title}}</a></li>
+                    </for!>
                 </ul>
             </section>
 
             <section class="comments">
-                <h2>Comments</h2>
-                <article>
-                    <hgroup>
+                <h2>댓글</h2>
+                <article class="post-comment">
+                    <header>
                         <h3>nulta-2</h3>
                         <div class="info">
                             <time datetime="2023-10-27+0900">2023-10-27</time>
                             <a class="homepage external" href="https://github.com/nulta" rel="nofollow">github</a>
                         </div>
-                    </hgroup>
+                    </header>
                     <p>hello</p>
                 </article>
-                <article class="reply">
-                    <hgroup>
+                <article class="post-comment reply">
+                    <header>
                         <h3>nulta-2</h3>
                         <div class="info">
                             <time datetime="2023-10-27+0900">2023-10-27</time>
                             <a class="homepage external" href="https://github.com/nulta" rel="nofollow">github</a>
                         </div>
-                    </hgroup>
+                    </header>
                     <p>
                         hello world<br>
                         asdfasdf
                     </p>
                 </article>
-                <article class="reply from-member">
-                    <hgroup>
+                <article class="post-comment reply from-member">
+                    <header>
                         <h3>nulta</h3>
                         <div class="info">
                             <time datetime="2023-10-27+0900">2023-10-27</time>
                         </div>
-                    </hgroup>
+                    </header>
                     <p>hello world</p>
                 </article>
-                <article class="from-member">
-                    <hgroup>
+                <article class="post-comment from-member">
+                    <header>
                         <h3>nulta</h3>
                         <div class="info">
                             <time datetime="2023-10-27+0900">2023-10-27</time>
                         </div>
-                    </hgroup>
+                    </header>
                     <p>hello world</p>
                 </article>
                 <comment-form></comment-form>

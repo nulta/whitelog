@@ -148,7 +148,6 @@ a.tag-link {
     margin-inline: 0.1em;
     
     transition: background-color 0.1s cubic-bezier(0.23, 1, 0.320, 1);
-    /* border: 1px solid var(--color-hyperlink); */
     color: var(--color-hyperlink);
     background-color: var(---color-hyperlink-3);
     text-decoration: none;
@@ -170,5 +169,53 @@ figure {
     & figcaption {
         font-size: 0.9em;
         opacity: 0.7;
+    }
+}
+
+article.post-comment {
+    background-color: var(--color-lit);
+    border: 1px solid var(--color-dim);
+    padding: 1.25rem 2rem;
+    margin-top: 1rem;
+
+    &.reply {
+        margin-top: 0em;
+        border-top: none;
+        background-image: url("data:image/svg+xml, %3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='15' viewBox='0 0 20 10'%3E%3Cpath d='M-5 -10 l40 40 M-5 0 l40 40 M-5 -20 l40 40' stroke='%230003' style='stroke-width: 3px;'/%3E%3C/svg%3E");
+        background-repeat: repeat-y;
+        padding-left: calc(30px + 2rem);
+    }
+
+    &.from-member header > :where(h1, h2, h3, h4) {
+        color: var(--color-hyperlink);
+        opacity: 1.0;
+    }
+
+    & header > :where(h1, h2, h3, h4) {
+        margin: 0;
+        display: inline;
+        margin-inline-end: 0.25rem;
+        font-size: 1rem;
+        font-weight: bold;
+        opacity: 0.8;
+    }
+
+    & header > .info {
+        display: inline;
+        opacity: 0.6;
+        font-size: 0.8rem;
+
+        & a:any-link {
+            color: inherit;
+            margin-inline-start: 0.25rem;
+        }
+    }
+
+    & p {
+        margin-block-start: 0.5rem;
+    }
+
+    & :last-child {
+        margin-block-end: 0;
     }
 }

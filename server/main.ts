@@ -1,9 +1,11 @@
 import { Hono } from "hono"
+import { etag } from "hono/etag"
 import { serveStatic } from "hono/deno"
 import { BlackPrintTemplate } from "server/lib/blackprint/blackprint.ts"
 
 const app = new Hono()
 
+app.use(etag())
 
 app.get("/", async (c) => {
     const template = new BlackPrintTemplate(
@@ -80,7 +82,7 @@ app.get("/:postId", async (c) => {
     c.req.param("postId")
 
     const html = (x: TemplateStringsArray) => (x.raw[0])
-
+    type RelationType = "both" | "out" | "in"
 
     const rendered = await template.render({
         site: {
@@ -106,6 +108,23 @@ app.get("/:postId", async (c) => {
                 <p>대법원은 법률에 저촉되지 아니하는 범위안에서 소송에 관한 절차, 법원의 내부규율과 사무처리에 관한 규칙을 제정할 수 있다. 행정권은 대통령을 수반으로 하는 정부에 속한다. 국회나 그 위원회의 요구가 있을 때에는 국무총리·국무위원 또는 정부위원은 출석·답변하여야 하며, 국무총리 또는 국무위원이 출석요구를 받은 때에는 국무위원 또는 정부위원으로 하여금 출석·답변하게 할 수 있다. 헌법재판소에서 법률의 위헌결정, 탄핵의 결정, 정당해산의 결정 또는 헌법소원에 관한 인용결정을 할 때에는 재판관 6인 이상의 찬성이 있어야 한다. 정부는 회계연도마다 예산안을 편성하여 회계연도 개시 90일전까지 국회에 제출하고, 국회는 회계연도 개시 30일전까지 이를 의결하여야 한다.</p>
                 <p>대통령은 조약을 체결·비준하고, 외교사절을 신임·접수 또는 파견하며, 선전포고와 강화를 한다. 이 헌법에 의한 최초의 대통령의 임기는 이 헌법시행일로부터 개시한다. 대통령은 국무회의의 의장이 되고, 국무총리는 부의장이 된다. 헌법재판소에서 법률의 위헌결정, 탄핵의 결정, 정당해산의 결정 또는 헌법소원에 관한 인용결정을 할 때에는 재판관 6인 이상의 찬성이 있어야 한다.</p>
             `,
+            relations: [
+                {
+                    title: "Both linked post",
+                    href: "/1234",
+                    relation: "both",
+                },
+                {
+                    title: "Backlink",
+                    href: "/2345",
+                    relation: "in",
+                },
+                {
+                    title: "Outbound link",
+                    href: "/2345",
+                    relation: "out",
+                },
+            ],
         }
     })
 

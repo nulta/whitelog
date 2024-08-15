@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200..900&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200..900&display=swap'); */
 
 :root {
     --color-primary: #00ffcc;
@@ -7,18 +7,17 @@
     --color-hyperlink: #1ec5a4;
     --color-error: #ff145a;
     --color-backdrop: #ffffff;
-    --color-background: #fafafa;
+    --color-background: #f9f9f9;
     --color-content: #222;
     --color-dim: #666;
     --color-dim-less: #999;
     --color-lit-less: #ccc;
-    --color-lit: #ddd;
-    --color-lit-more: #eee;
+    --color-lit: #eee;
+    --color-lit-more: #e5e5e5;
     --color-lit-highlighted: #1ec5a420;
 
     --texture-noise: url('data:image/webp;base64,UklGRiICAABXRUJQVlA4WAoAAAAQAAAAHwAAHwAAQUxQSOIBAAABYBwAadzso6iARxoRMd0PoFpOPDJdswnXbjJHr7SaHA7gLLYS8LvGIdmrm7oAJ/uRfmLO47AYHo/03FeWEaKvF1q9dlxde5YjliV+v3v6WGd3oiOf49rxpBQwy32WzfKDzadXVc477aUVVaudEot+rWXv+KUTbn1lSN7Yesyq3179u+4SYOe+CqJhTU1lS3qX+9r7rDrvcznaEbtl8dlXK6mNCgWiVGbxDf6AKA64OePT4d2eZLDtXM7yhO0r6uEmIRm3f2SPWeh6/hD9Pwovamcv97pYdhz+nbk/wpikrYsKxyD23tUGmyq8583USlqehn2RKu3Ua6lPf8q8Cy6o1nDncP/DGxw9TmqMsPumtNX+Ok8Jwe/Eumd7owk+Kky/SQnjr9YcCoPOp7NPNWzunyNsObJL/PthGq6g5sVVmGdABUWiOweZ7Hziqpvbq+1RyC+ilTBc9+DGihQilf5EwfgPUpRcnFfBqV7WrtN3nNlnC5l9UYDerh4oF2m+55mrnKlz0/fvuyXhkmaOoQ1Ns9XouKpPRVRASKZl+h9naxAPok89cCvqZrj5xNu7Gm4Ilja4gtx2rCSBWaN+hEWJIc4QkacBVMGbiGaJVDfVdeD7Pwt6tqKyRTHROyzPvYH30FZQOCAaAAAAVAEAnQEqIAAgAAAATAAADyVYAAD++B+AAAA=');
     --font-family: 'IBM Plex Sans KR', sans-serif;
-    /* --font-family: 'Noto Serif KR', serif; */
+    --font-size: 17px;
     --max-width: 770px;
-
 }
