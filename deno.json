@@ -1,6 +1,7 @@
 {
     "imports": {
         "hono": "jsr:@hono/hono@^4.5.4",
+        "sqlite": "https://deno.land/x/sqlite@v3.8/mod.ts",
         "server": "./server",
         "server/": "./server/"
     },
