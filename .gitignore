@@ -7,5 +7,10 @@
 
 # Fresh build directory
 _fresh/
+
 # npm dependencies
 node_modules/
+
+# whitelog data files
+data/*
+!data/.gitkeep

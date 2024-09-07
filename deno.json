@@ -1,12 +1,16 @@
 {
     "imports": {
+        "assert": "jsr:@std/assert@^1.0.3",
         "hono": "jsr:@hono/hono@^4.5.4",
-        "sqlite": "https://deno.land/x/sqlite@v3.8/mod.ts",
+        "scrypt": "jsr:@denorg/scrypt@^4.4.4",
         "server": "./server",
-        "server/": "./server/"
+        "server/": "./server/",
+        "sqlite": "https://deno.land/x/sqlite@v3.8/mod.ts",
+        "nanoid": "https://deno.land/x/nanoid@v3.0.0/mod.ts"
     },
     "tasks": {
-        "start": "deno run --allow-net --allow-read=./client server/main.ts"
+        "start": "deno run --allow-net --allow-read=./client,./data --allow-write=./data server/main.ts",
+        "watch": "deno run --watch --allow-net --allow-read=./client,./data --allow-write=./data server/main.ts"
     },
     "fmt": {
         "indentWidth": 4,

@@ -2,6 +2,13 @@ import { Hono } from "hono"
 import { etag } from "hono/etag"
 import { serveStatic } from "hono/deno"
 import { BlackPrintTemplate } from "server/lib/blackprint/blackprint.ts"
+import { DatabaseManager } from "./managers/DatabaseManager.ts"
+import { Logger } from "server/lib/logger.ts"
+
+DatabaseManager.initialize({
+    // filepath: "data/whitelog.db",
+    filepath: ":memory:",
+})
 
 const app = new Hono()
 
@@ -68,6 +75,27 @@ app.get("/", async (c) => {
 app.get("/favicon.ico", (c) => {
     c.status(404)
     return c.text("404 Not Found")
+})
+
+app.get("/login", async (c) => {
+    const template = new BlackPrintTemplate(
+        await Deno.readTextFile("./client/templates/login.bp.html"),
+        async (path) =>
+            await Deno.readTextFile(
+                "./client/templates/" + path.replaceAll("..", "") + ".bp.html",
+            ),
+    )
+
+    const rendered = await template.render({
+        site: {
+            lang: "ko",
+            name: "whitelog",
+            description: "A simple blog",
+            ownerName: "nulta",
+        },
+    })
+
+    return c.html(rendered)
 })
 
 app.get("/:postId", async (c) => {
@@ -143,4 +171,6 @@ app.use(
 )
 
 
-Deno.serve(app.fetch)
+Deno.serve({onListen: (addr)=>{
+    Logger.info(`Listening on ${addr.hostname}:${addr.port}`)
+}}, app.fetch)
