@@ -44,7 +44,9 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@hono/hono@^4.5.4"
+      "jsr:@denorg/scrypt@^4.4.4",
+      "jsr:@hono/hono@^4.5.4",
+      "jsr:@std/assert@^1.0.3"
     ]
   }
 }

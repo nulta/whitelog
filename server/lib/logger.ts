@@ -6,16 +6,14 @@ export class Logger {
     private static getTimezoneStr() {
         // e.g. `-540` -> `UTC+9` (which is Asia/Seoul)
         const tz = new Date().getTimezoneOffset()
-        const tzSign = tz <= 0 ? "+" : "-"
         const tzAbs = Math.abs(tz)
+        const tzSign = tz <= 0 ? "+" : "-"
+        const tzHr = Math.floor(tzAbs / 60)
+        const tzMin = tzAbs % 60
 
-        if (tzAbs % 60 == 0) {
-            return `UTC${tzSign}${Math.floor(tzAbs / 60)}`
+        if (tzMin == 0) {
+            return `UTC${tzSign}${tzHr}`
         } else {
-            const [tzHr, tzMin] = [
-                Math.floor(tzAbs / 60),
-                tzAbs % 60
-            ].map(x => x.toString().padStart(2, "0"))
             return `UTC${tzSign}${tzHr}:${tzMin}`
         }
     }
@@ -23,6 +21,7 @@ export class Logger {
     private static getDatestamp() {
         const d = new Date()
         const tz = this.getTimezoneStr()
+
         const [yyyy, mm, dd] = [
             d.getFullYear(), d.getMonth(), d.getDate(),
         ].map(x => x.toString().padStart(2, "0"))
@@ -40,12 +39,16 @@ export class Logger {
         return `${hour}:${min}:${sec}`
     }
 
-    private static display(color: string, prefix: string, data: any[]) {
+    private static updateDatestamp() {
         const datestamp = this.getDatestamp()
         if (this.lastDatestamp != datestamp) {
             this.lastDatestamp = datestamp
-            console.log("%c%s", "color: grey", datestamp)
+            console.log("%c== %s ==", "color: grey", datestamp)
         }
+    }
+
+    private static display(color: string, prefix: string, data: any[]) {
+        this.updateDatestamp()
 
         const prefixData = [`color: grey`, this.getTimestamp(), `color: ${color}`, prefix]
         const [fmtStr, ...fmtData] = data
