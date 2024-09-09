@@ -1,14 +1,55 @@
 import { Hono } from "hono"
 import { etag } from "hono/etag"
 import { serveStatic } from "hono/deno"
+import { Logger } from "server/lib/logger.ts"
 import { BlackPrintTemplate } from "server/lib/blackprint/blackprint.ts"
 import { DatabaseManager } from "./managers/DatabaseManager.ts"
-import { Logger } from "server/lib/logger.ts"
+import { UserManager } from "server/managers/UserManager.ts"
+import { PostManager } from "server/managers/PostManager.ts"
 
 DatabaseManager.initialize({
     // filepath: "data/whitelog.db",
     filepath: ":memory:",
 })
+
+UserManager.initialize()
+
+PostManager.initialize()
+
+UserManager.createUser({
+    username: "test",
+    password: "test-password",
+    displayName: "Test User",
+})
+
+
+;(async() => {
+    const user = await UserManager.login("test", "test-password")
+    Logger.info(user)
+    Logger.info(await UserManager.login("test", "WRONG-PASSWORD"))
+
+    const invite = await UserManager.createInvite({})
+    Logger.info(invite)
+    Logger.info(await UserManager.isValidInvite(invite.code))
+    Logger.info(await UserManager.isValidInvite("INVALID-CODE"))
+    Logger.info(await UserManager.useInvite(invite.code, user!))
+    Logger.info(await UserManager.isValidInvite(invite.code))
+
+    for (let i = 0; i < 20; i++) {
+        await PostManager.createPost({
+            title: "Test Post " + i,
+            content: "This is a test post",
+            author: user!,
+        })
+    }
+
+    const posts1 = await PostManager.paginatePosts(10)
+    Logger.info(posts1)
+
+    const posts2 = await PostManager.paginatePosts(10, posts1[posts1.length - 1].createdAt)
+    Logger.info(posts2)
+})()
+
 
 const app = new Hono()
 

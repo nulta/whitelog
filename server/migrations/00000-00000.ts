@@ -13,7 +13,7 @@ export const command = sql`
     CREATE TABLE posts (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
-        subtitle TEXT NOT NULL DEFAULT "",
+        subtitle TEXT,
         content TEXT NOT NULL,
         created_at INTEGER NOT NULL,
         updated_at INTEGER,
@@ -54,22 +54,30 @@ export const command = sql`
         code TEXT PRIMARY KEY,
         uses INTEGER NOT NULL DEFAULT 1,
         created_at INTEGER NOT NULL,
-        created_by TEXT REFERENCES users(id) ON DELETE SET NULL
+        created_by TEXT REFERENCES users(id) ON DELETE CASCADE,
+        expires_at INTEGER
     ) STRICT;
 
     CREATE TABLE invite_uses (
         invite_code TEXT NOT NULL REFERENCES invites(code) ON DELETE CASCADE,
-        used_by TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        used_by TEXT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         used_at INTEGER NOT NULL
     ) STRICT;
 
     CREATE TABLE post_tags (
         post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-        tag_title TEXT NOT NULL REFERENCES tags(title) ON DELETE CASCADE ON UPDATE CASCADE
+        tag_title TEXT NOT NULL REFERENCES tags(title) ON DELETE CASCADE ON UPDATE CASCADE,
+        PRIMARY KEY (post_id, tag_title)
     ) STRICT;
 
     CREATE TABLE post_links (
         from_post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-        to_post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE
+        to_post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+        PRIMARY KEY (from_post_id, to_post_id)
     ) STRICT;
+
+    CREATE INDEX idx_user_username ON users(username);
+    CREATE INDEX idx_post_author_id ON posts(author_id);
+    CREATE INDEX idx_post_created_at ON posts(created_at);
+    CREATE INDEX idx_comment_post_id ON comments(post_id);
 `

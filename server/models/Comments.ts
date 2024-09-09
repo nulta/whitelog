@@ -1,4 +1,4 @@
-import { DatabaseController, DB } from "server/models/DatabaseController.ts"
+import { DatabaseController, IDatabase } from "server/models/DatabaseController.ts"
 
 type Comment = {
     post_id: string
@@ -10,8 +10,8 @@ type Comment = {
     reply_to: string | null
 }
 
-export class CommentController extends DatabaseController<Comment> {
-    constructor(db: DB) {
+export class CommentDb extends DatabaseController<Comment> {
+    constructor(db: IDatabase) {
         super(db, "comments", { idLength: 6 }, {
             post_id: "",
             id: "",

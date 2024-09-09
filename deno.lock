@@ -3,16 +3,37 @@
   "packages": {
     "specifiers": {
       "jsr:@b-fuze/deno-dom@0.1.47": "jsr:@b-fuze/deno-dom@0.1.47",
+      "jsr:@denorg/scrypt@^4.4.4": "jsr:@denorg/scrypt@4.4.4",
       "jsr:@hono/hono@^4.5.4": "jsr:@hono/hono@4.5.4",
+      "jsr:@std/assert@0.222.1": "jsr:@std/assert@0.222.1",
+      "jsr:@std/assert@^0.222.1": "jsr:@std/assert@0.222.1",
       "jsr:@std/assert@^1.0.3": "jsr:@std/assert@1.0.3",
+      "jsr:@std/crypto@0.222.1": "jsr:@std/crypto@0.222.1",
+      "jsr:@std/encoding@0.222.1": "jsr:@std/encoding@0.222.1",
+      "jsr:@std/encoding@^0.222.1": "jsr:@std/encoding@0.222.1",
+      "jsr:@std/fmt@^0.222.1": "jsr:@std/fmt@0.222.1",
       "jsr:@std/internal@^1.0.2": "jsr:@std/internal@1.0.2"
     },
     "jsr": {
       "@b-fuze/deno-dom@0.1.47": {
         "integrity": "270a888de91329f8ce3849211ece0ad97ce1e8b9a8a774f2bed2f43c8b0ffe8e"
       },
+      "@denorg/scrypt@4.4.4": {
+        "integrity": "81e82ad4627e91f4c98c1789b3382667f366a61702642ad5d3a8dddf7b444905",
+        "dependencies": [
+          "jsr:@std/assert@0.222.1",
+          "jsr:@std/crypto@0.222.1",
+          "jsr:@std/encoding@0.222.1"
+        ]
+      },
       "@hono/hono@4.5.4": {
         "integrity": "3792780b8460d5df0959b07c059db9325e4fa1a49f8b5aff7ab9bc870bdec8e3"
+      },
+      "@std/assert@0.222.1": {
+        "integrity": "691637161ee584a9919d1f9950ddd1272feb8e0a19e83aa5b7563cedaf73d74c",
+        "dependencies": [
+          "jsr:@std/fmt@^0.222.1"
+        ]
       },
       "@std/assert@1.0.3": {
         "integrity": "b0d03ce1ced880df67132eea140623010d415848df66f6aa5df76507ca7c26d8",
@@ -20,18 +41,25 @@
           "jsr:@std/internal@^1.0.2"
         ]
       },
+      "@std/crypto@0.222.1": {
+        "integrity": "d5b9e6c704fadbcc384cd42c0b603ad4aea710ece0ff26426602681b64fd237c",
+        "dependencies": [
+          "jsr:@std/assert@^0.222.1",
+          "jsr:@std/encoding@^0.222.1"
+        ]
+      },
+      "@std/encoding@0.222.1": {
+        "integrity": "fb6c1d38722feebc8d4a5efa3eb2039ecec0d50d053186240484d0c4a4ce1006"
+      },
+      "@std/fmt@0.222.1": {
+        "integrity": "ec3382f9b0261c1ab1a5c804aa355d816515fa984cdd827ed32edfb187c0a722"
+      },
       "@std/internal@1.0.2": {
         "integrity": "f4cabe2021352e8bfc24e6569700df87bf070914fc38d4b23eddd20108ac4495"
       }
     }
   },
   "remote": {
-    "https://deno.land/x/nanoid@v3.0.0/customAlphabet.ts": "1cfd7cfd2f07ca8d78a7e7855fcc9f59abf01ef2a127484ef94328fadf940ead",
-    "https://deno.land/x/nanoid@v3.0.0/customRandom.ts": "af56e19038c891a4b4ef2be931554c27579bd407ee5bbea5cb64f6ee1347cbe3",
-    "https://deno.land/x/nanoid@v3.0.0/mod.ts": "3ead610e40c58d8fdca21d5da9ec661445a2b82526e19c34d05de5f90be8a1be",
-    "https://deno.land/x/nanoid@v3.0.0/nanoid.ts": "8d119bc89a0f34e7bbe0c2dbdc280d01753e431af553d189663492310a31085d",
-    "https://deno.land/x/nanoid@v3.0.0/random.ts": "4da71d5f72f2bfcc6a4ee79b5d4e72f48dcf4fe4c3835fd5ebab08b9f33cd598",
-    "https://deno.land/x/nanoid@v3.0.0/urlAlphabet.ts": "8b1511deb1ecb23c66202b6000dc10fb68f9a96b5550c6c8cef5009324793431",
     "https://deno.land/x/sqlite@v3.8/build/sqlite.js": "72f63689fffcb9bb5ae10b1e8f7db09ea845cdf713e0e3a9693d8416a28f92a6",
     "https://deno.land/x/sqlite@v3.8/build/vfs.js": "08533cc78fb29b9d9bd62f6bb93e5ef333407013fed185776808f11223ba0e70",
     "https://deno.land/x/sqlite@v3.8/mod.ts": "e09fc79d8065fe222578114b109b1fd60077bff1bb75448532077f784f4d6a83",

@@ -1,12 +1,14 @@
 import { Logger } from "server/lib/logger.ts"
 import { DB } from "sqlite"
 import { list as migrationList } from "server/migrations/list.ts"
+import { IDatabase } from "server/models/DatabaseController.ts"
 
 const log = new Logger("DatabaseManager", "#9d42ed")
-
 type DatabaseOptions = {
     filepath: string
 }
+
+type DatabaseConsumerClass<T> = { new (db: IDatabase): T }
 
 export class DatabaseManager {
     private static db: DB
@@ -28,6 +30,17 @@ export class DatabaseManager {
         this.initializeMigrations()
         log.info("Initialized database", filepath)
     }
+
+    /**
+     * Instantiate a DatabaseController-like class with the database object.
+     * @example
+     *  this.CommentDb = DatabaseManager.instantiate(CommentDb)
+     *  this.CommentDb.create({ ... })
+     */
+    static instantiate<T extends DatabaseConsumerClass<U>, U>(Controller: T): U {
+        return new Controller(this.db)
+    }
+
 
     private static initializeMetadata() {
         this.db.execute(
