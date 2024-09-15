@@ -48,11 +48,11 @@ export class BlackPrintTemplate<const T extends TemplateData> {
         const tagName = element.tagName.toLowerCase()
         switch (tagName) {
             case "for!":
-                this.processForTag(element, data)
+                await this.processForTag(element, data)
                 break
 
             case "if!":
-                this.processIfTag(element, data)
+                await this.processIfTag(element, data)
                 break
             
             case "ref!":
