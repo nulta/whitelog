@@ -76,6 +76,11 @@ export const command = sql`
         PRIMARY KEY (from_post_id, to_post_id)
     ) STRICT;
 
+    CREATE TABLE configurations (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    ) STRICT;
+
     CREATE INDEX idx_user_username ON users(username);
     CREATE INDEX idx_post_author_id ON posts(author_id);
     CREATE INDEX idx_post_created_at ON posts(created_at);
