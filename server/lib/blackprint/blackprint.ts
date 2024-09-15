@@ -3,7 +3,7 @@ import { DOMParser, HTMLDocument, Element, Node, NodeType } from "jsr:@b-fuze/de
 
 type DeepStringStack = Array<string | DeepStringStack>
 type PrimitiveType = string | number | boolean | null | Array<PrimitiveType | TemplateData>
-type TemplateData = {
+export type TemplateData = {
     [key: string]: TemplateData | PrimitiveType
 }
 type ImportFunc = (importStr: string) => Promise<string | null>
@@ -12,8 +12,10 @@ type ImportFunc = (importStr: string) => Promise<string | null>
 export class BlackPrintTemplate<const T extends TemplateData> {
     private dom: HTMLDocument
     private importFunc: ImportFunc
+    public readonly source: string
 
     constructor(template: string, importFunc: ImportFunc = (async () => await null)) {
+        this.source = template
         this.dom = new DOMParser().parseFromString(template, "text/html")
         this.importFunc = importFunc
     }
