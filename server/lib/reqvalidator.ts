@@ -1,6 +1,6 @@
 import { ValidationFunction, validator } from "hono/validator"
 
-type ItemString = { $: "string", optional?: boolean, regex?: RegExp }
+type ItemString = { $: "string", optional?: boolean, regex?: RegExp, minLength?: number, maxLength?: number }
 type ItemNumber = { $: "number", optional?: boolean, min?: number, max?: number, integer?: boolean }
 type ItemBoolean = { $: "boolean", optional?: boolean }
 type ItemArray = { $: "array", optional?: boolean, items: ValidatorItem }
@@ -32,6 +32,14 @@ function findRejectReasonForItem(item: ValidatorItem, input: unknown, keyName: s
 
         if (item.regex && !item.regex.test(input)) {
             return `[6X2BV] Invalid string for key: ${keyName}`
+        }
+
+        if ((item.minLength != null) && (input.length < item.minLength)) {
+            return `[6X2BV] String is too short for key: ${keyName}`
+        }
+
+        if ((item.maxLength != null) && (input.length > item.maxLength)) {
+            return `[6X2BV] String is too long for key: ${keyName}`
         }
     } else if (type == "number") {
         if (typeof input !== "number") {

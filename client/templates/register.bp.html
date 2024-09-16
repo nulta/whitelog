@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="{{site.lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="{{site.name}}">
+    <meta name="description" content="{{site.description}}">
+    <link rel="stylesheet" href="/assets/css/index.css">
+    <script src="/assets/js/index.js" type="module"></script>
+    <script src="/assets/js/login.js" type="module"></script>
+    <title>회원등록 - {{site.name}}</title>
+</head>
+<body>
+    <ref! import="site-header"></ref!>
+    <main>
+        <form class="register-form" onsubmit="return false">
+            <h1>회원등록</h1>
+            <label for="invitecode">Invite code</label>
+            <input type="text" id="invitecode" name="invitecode" required autofocus>
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autofocus>
+
+            <label for="displayname">Nickname</label>
+            <input type="text" id="displayname" name="displayname" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="password-2">Password (repeat)</label>
+            <input type="password" id="password-2" name="password-2" required>
+
+            <button type="submit">Register</button>
+        </form>
+    </main>
+    <ref! import="site-footer"></ref!>
+</body>
+</html>
