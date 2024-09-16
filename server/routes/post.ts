@@ -1,9 +1,9 @@
 import { Hono } from "hono"
 import { RenderManager } from "server/managers/RenderManager.ts"
 
-export const postRoute = new Hono()
+export const route = new Hono()
 
-postRoute.get("/:postId", async (c) => {
+route.get("/:postId", async (c) => {
     c.req.param("postId")
 
     const html = (x: TemplateStringsArray) => (x.raw[0])

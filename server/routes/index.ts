@@ -1,9 +1,9 @@
 import { Hono } from "hono"
 import { RenderManager } from "server/managers/RenderManager.ts"
 
-export const indexRoute = new Hono()
+export const route = new Hono()
 
-indexRoute.get("/", async (c) => {
+route.get("/", async (c) => {
     const data = {
         tags: [
             "tag1", "tag2", "tag3",

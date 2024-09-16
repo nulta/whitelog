@@ -1,10 +1,10 @@
 import { Hono } from "hono"
 import { serveStatic } from "hono/deno"
 
-export const assetsRoute = new Hono()
+export const route = new Hono()
 
-assetsRoute.use(
-    "/assets/*",
+route.use(
+    "/",
     serveStatic({
         root: "./client",
         onNotFound: (_path, c) => { c.notFound() },

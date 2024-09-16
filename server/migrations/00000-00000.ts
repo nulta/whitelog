@@ -43,7 +43,7 @@ export const command = sql`
     ) STRICT;
 
     CREATE TABLE sessions (
-        id TEXT PRIMARY KEY,
+        key TEXT PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         created_at INTEGER NOT NULL,
         last_used_at INTEGER NOT NULL,
@@ -85,4 +85,5 @@ export const command = sql`
     CREATE INDEX idx_post_author_id ON posts(author_id);
     CREATE INDEX idx_post_created_at ON posts(created_at);
     CREATE INDEX idx_comment_post_id ON comments(post_id);
+    CREATE INDEX idx_session_user_id ON sessions(user_id);
 `

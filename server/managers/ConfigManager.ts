@@ -2,7 +2,7 @@ import { DatabaseManager } from "server/managers/DatabaseManager.ts"
 import { ConfigDb } from "server/models/Configurations.ts"
 import { Logger } from "server/lib/logger.ts"
 
-const log = new Logger("PostManager", "#f06d30")
+const log = new Logger("ConfigManager", "#66f274")
 
 type ConfigKey = keyof typeof ConfigDefaults
 type ConfigValue<T extends ConfigKey> = typeof ConfigDefaults[T]
