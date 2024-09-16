@@ -219,3 +219,50 @@ article.post-comment {
         margin-block-end: 0;
     }
 }
+
+#wl-notification-container {
+    z-index: 1000;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 1rem;
+    max-width: 100%;
+    max-height: 100%;
+    overflow-x: hidden;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    pointer-events: none;
+
+    & > * {
+        pointer-events: auto;
+    }
+}
+
+:host(wl-notification-box) > .notification-box {
+    background-color: var(--color-content);
+    border: 1px solid var(--color-primary);
+    border-left-width: 4px;
+    color: var(--color-lit);
+    padding: 0.5rem 1rem;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+    max-width: 25rem;
+
+    display: flex;
+    gap: 1em;
+    align-items: center;
+    justify-content: space-between;
+
+    &.info {
+        border-color: var(--color-primary);
+    }
+
+    &.error {
+        border-color: var(--color-error);
+    }
+    
+    &.warn {
+        border-color: var(--color-warning);
+    }
+}
