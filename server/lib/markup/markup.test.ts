@@ -1,7 +1,7 @@
 import { assertEquals } from "assert"
-import { MarkupInlineParser, MarkupParser } from "./markup.ts"
+import { MarkupParser, MarkupInlineParser, TagDictionary, defaultTagDictionary } from "./markup.ts"
 
-type MarkupTree = ReturnType<typeof MarkupParser.parse>
+type MarkupTree = ReturnType<typeof MarkupParser.prototype.parse>
 type MarkupSubTree = (MarkupTree[number]|string)[]
 
 const blk = (tag: string, children: MarkupSubTree, params: string[] = [], attributes: Record<string,string> = {}) =>
@@ -9,6 +9,14 @@ const blk = (tag: string, children: MarkupSubTree, params: string[] = [], attrib
 
 const inline = (tag: string, children: MarkupSubTree, params: string[] = [], attributes: Record<string,string> = {}) =>
     ({ tag, children, block: false, params, attributes })
+
+
+const wildcardDict = new TagDictionary([], { unsafelyAllowAnyTags: true, unsafelySkipSanitization: true })
+
+const dict = defaultTagDictionary.extend([], {
+    globalAllowedClasses: ["class1", "class2", "class3"],
+    globalAllowedAttributes: ["w", "h", "focus"],
+})
 
 
 Deno.test({
@@ -26,7 +34,7 @@ pppp
 pppp
         `
 
-        assertEquals(MarkupParser.parse(text), [
+        assertEquals(new MarkupParser(wildcardDict).parse(text), [
             blk("a", ["aaaa", "aaaa", blk("b", ["bbbb", "bbbb"])]),
             blk("c", ["cccc"]),
             blk("p", ["pppp"]),
@@ -70,7 +78,7 @@ pp2
 ppp1
         `
 
-        assertEquals(MarkupParser.parse(text), [
+        assertEquals(new MarkupParser(wildcardDict).parse(text), [
             blk("a", [
                 blk("b", ["bb", blk("c", ["cc"]), blk("d", ["dd"]), "bb"]),
                 blk("e", ["ee", "", "ee", "", blk("f", ["", "ff"])]),
@@ -91,17 +99,19 @@ Deno.test({
     name: "MarkupParser: params and attributes",
     fn: () => {
         const text = `
-[a "/link.html" .class1 .class2] hyperlink
+[a "/link.html" .class1 .class2: hyperlink]
 [h1] Title
 [img "/image.jpg" w=100 h="200px" alt="image" .x focus]
-[a aa x=1 bb x=2] hi
+[p aa x=1 bb x=2] hi
 `
 
-        assertEquals(MarkupParser.parse(text), [
-            blk("a", ["hyperlink"], ["/link.html"], { class: "class1 class2" }),
+        assertEquals(new MarkupParser(wildcardDict).parse(text), [
+            blk("p", [
+                inline("a", ["hyperlink"], ["/link.html"], { class: "class1 class2" }),
+            ]),
             blk("h1", ["Title"], [], {}),
             blk("img", [], ["/image.jpg", "focus"], { w: "100", h: "200px", alt: "image", class: "x" }),
-            blk("a", ["hi"], ["aa", "bb"], { x: "2" }),
+            blk("p", ["hi"], ["aa", "bb"], { x: "2" }),
         ])
     }
 })
@@ -119,7 +129,7 @@ Deno.test({
     [g:gg]
 `
 
-        assertEquals(MarkupParser.parse(text), [
+        assertEquals(new MarkupParser(wildcardDict).parse(text), [
             blk("a", ["hyperlink"], ["/link.html"], { class: "class1 class2" }),
             blk("h1", ["Title"], [], {}),
             blk("img", [], ["/image.jpg", "focus"], { w: "100", h: "200px", alt: "image", class: "x" }),
@@ -129,6 +139,7 @@ Deno.test({
                 inline("c", ["cc"]),
                 inline("d", ["dd"]),
                 inline("e", [inline("f", ["ff"])]),
+                "",
                 inline("g", ["gg"]),
             ], ["aa", "bb"], { x: "2" }),
         ])
@@ -140,7 +151,7 @@ Deno.test({
     fn: () => {
         const text = `hello [code:world]! [a "link.html": click [code:here]]`
         
-        assertEquals(MarkupInlineParser.parse(text), [
+        assertEquals(new MarkupInlineParser(dict).parse(text, null), [
             "hello ",
             inline("code", ["world"]),
             "! ",
@@ -156,7 +167,7 @@ Deno.test({
     fn: () => {
         const text = `**bold** text, *em* text, ***bold and em*** text, \`code\`, ~~del **bold**~~`
         
-        assertEquals(MarkupInlineParser.parse(text), [
+        assertEquals(new MarkupInlineParser(dict).parse(text, null), [
             inline("strong", ["bold"]),
             " text, ",
             inline("em", ["em"]),
@@ -166,6 +177,102 @@ Deno.test({
             inline("code", ["code"]),
             ", ",
             inline("del", ["del ", inline("strong", ["bold"])]),
+        ])
+    }
+})
+
+Deno.test({
+    name: "MarkupParser: should ignore unknown tags",
+    fn: () => {
+        const text = `
+[unknown] text
+[h1] [unknown: foo] bar
+[blockquote]
+    [unknown2] foo
+        [unknown3] bar
+        [h2] ignore me for wrong indentation
+    [h2] parse me
+`
+        assertEquals(new MarkupParser(dict).parse(text), [
+            blk("p", ["[unknown] text"]),
+            blk("h1", ["[unknown: foo] bar"]),
+            blk("blockquote", [
+                "[unknown2] foo",
+                "    [unknown3] bar",
+                "    [h2] ignore me for wrong indentation",
+                blk("h2", ["parse me"]),
+            ]),
+        ])
+    }
+})
+
+Deno.test({
+    name: "MarkupParser: should sanitize nodes",
+    fn: () => {
+        const text = `
+[p .class1 .unknownclass] text
+[p onload="ignore me"]
+    [a "link.html" invalid params title="hello" foobar: link]
+    [img "/img.jpg" "ignore me" .ignoreme ignore=me alt="image"]
+    [script] doEvil()
+    [iframe] evil.tld
+`
+
+        assertEquals(new MarkupParser(dict).parse(text), [
+            blk("p", ["text"], [], { class: "class1" }),
+            blk("p", [
+                inline("a", ["link"], [], { href: "link.html", title: "hello" }),
+                "",
+                blk("img", [], [], { src: "/img.jpg", alt: "image" }),
+                "[script] doEvil()",
+                "[iframe] evil.tld",
+            ]),
+        ])
+    }
+})
+
+Deno.test({
+    name: "MarkupParser: should correctly parse plaintext nodes",
+    fn: () => {
+        const text = `
+[h1] ~~asdf~~ \`code\` \`[b:hello]\`
+
+[code lua]
+    for k, v in pairs(t) do
+        tbl[k][v] = true
+    end
+    
+    --[[
+    [h1] title
+    ]]
+    
+    return tbl
+
+[h1] ~~asdf~~ \`code\` \`[b:hello]\`
+`
+
+        assertEquals(new MarkupParser(dict).parse(text), [
+            blk("h1", [
+                inline("del", ["asdf"]),
+                inline("code", ["code"]),
+                inline("code", ["[b:hello]"]),
+            ]),
+            blk("code", [
+                "for k, v in pairs(t) do",
+                "    tbl[k][v] = true",
+                "end",
+                "",
+                "--[[",
+                "[h1] title",
+                "]]",
+                "",
+                "return tbl",
+            ], [], { lang: "lua" }),
+            blk("h1", [
+                inline("del", ["asdf"]),
+                inline("code", ["code"]),
+                inline("code", ["[b:hello]"]),
+            ]),
         ])
     }
 })
