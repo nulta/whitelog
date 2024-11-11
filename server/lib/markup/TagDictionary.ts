@@ -185,6 +185,15 @@ export class TagDictionary {
         node.children.forEach(c => this.sanitizeNode(c))
     }
 
+    getHtmlTag(nodeName: string, isBlock: boolean): string | null {
+        const tag = isBlock ? this.getBlock(nodeName) : this.getInline(nodeName)
+        if (!tag) {
+            return this.config.unsafelyAllowAnyTags ? nodeName : null
+        }
+
+        return tag.elem
+    }
+
     private sanitizeAttributes(node: MarkupNode, allowed: string[]) {
         const globalAllowed = this.config.globalAllowedAttributes ?? []
         const allowedSet = new Set([...allowed, ...globalAllowed, "class"])

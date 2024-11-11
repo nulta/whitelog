@@ -31,7 +31,7 @@ export class MarkupParser {
 
 
     private init(text: string) {
-        this.lines = text.split("\n")
+        this.lines = text.split("\n").map(line => line + "\n")
         this.lineIndex = 0
         this.blockIndents = 0
     }
@@ -44,7 +44,7 @@ export class MarkupParser {
             this.inlineParser.parseBlockTag(text, parentTag, this.blockElemStart, this.blockElemEnd)
         if (!tag || errored) { return null }
 
-        const children = [trailingText.trimEnd()].filter(Boolean)
+        const children = [trailingText.trimEnd()].filter(Boolean).map(x => x + "\n")
         return {
             tag,
             attributes,
@@ -54,21 +54,21 @@ export class MarkupParser {
         }
     }
 
-    private parseChildren(parentTag: string | null): MarkupSubTree {
-        let children: MarkupSubTree = []
+    private parseChildren(parentTag: string | null, initialChildren = [] as MarkupSubTree): MarkupSubTree {
+        let children: MarkupSubTree = initialChildren
 
         // Parse the block children
         while (!this.isEof()) {
             // Skip empty lines
             if (this.isWhitespace(this.peek())) {
-                children.push("")
+                children.push("\n")
                 this.next()
                 continue
             }
 
             // Look for the indentation level, and then advance
-            const line = this.trimIndent(this.peek()!, this.blockIndents)?.trimEnd()
-            if (!line) { break }
+            const line = this.trimIndent(this.peek()!, this.blockIndents)
+            if (!line?.trimEnd()) { break }
             this.next()
 
             // Assume no child?
@@ -82,9 +82,7 @@ export class MarkupParser {
             if (!plainText && subBlock) {
                 // Recursively parse the sub-block
                 this.blockIndents++
-                subBlock.children.push(
-                    ...this.parseChildren(subBlock.tag)
-                )
+                subBlock.children = this.parseChildren(subBlock.tag, subBlock.children)
                 children.push(subBlock)
                 this.blockIndents--
             } else {
@@ -93,6 +91,7 @@ export class MarkupParser {
             }
         }
 
+        this.removeLastLf(children)
         children = this.afterParse(children, parentTag)
         return children
     }
@@ -110,12 +109,27 @@ export class MarkupParser {
             children = this.regularizeSubTree(children)
         }
 
-        // Remove trailing empty lines
-        while (children.at(-1) == "") {
-            children.pop()
-        }
-
         return children
+    }
+
+    private removeLastLf(children: MarkupSubTree) {
+        while (true) {
+            let last = children.pop()
+            if (typeof last == "string") {
+                last = last.trimEnd()
+                if (last) {
+                    children.push(last)
+                    break
+                } else {
+                    continue
+                }
+            }
+
+            if (last != null) {
+                children.push(last)
+            }
+            break
+        }
     }
 
     private next() {
@@ -168,13 +182,15 @@ export class MarkupParser {
         for (const content of contents) {
             // Pass through block node
             if (typeof content != "string" && content.block) {
+                this.removeLastLf(currentDefaultBlock?.children ?? [])
                 currentDefaultBlock = null
                 tree.push(content)
                 continue
             }
 
             // Split the block by empty lines
-            if (content == "") {
+            if (content == "\n") {
+                this.removeLastLf(currentDefaultBlock?.children ?? [])
                 currentDefaultBlock = null
                 continue
             }
@@ -195,10 +211,12 @@ export class MarkupParser {
             currentDefaultBlock.children.push(content)
         }
 
+        this.removeLastLf(currentDefaultBlock?.children ?? [])
+
         return tree
     }
 
     private parseInlineMarkup(text: string, parent: string | null): MarkupSubTree {
-        return this.inlineParser.parse(text, parent, true)
+        return this.inlineParser.parse(text, parent)
     }
 }

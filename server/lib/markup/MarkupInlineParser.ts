@@ -43,17 +43,13 @@ export class MarkupInlineParser {
         return { tag, attributes, params, trailingText, errored }
     }
 
-    parse(text: string, parentBlockTag: string | null, insertEolIndicator = false) {
-        if (text == "") { return [""]} 
+    parse(text: string, parentBlockTag: string | null): MarkupSubTree {
+        if (text == "") { return []}
 
         this.init(text, parentBlockTag)
 
         while (this.text.length > 0) {
             this.processLandmark()
-        }
-
-        if (insertEolIndicator && typeof this.nodes.at(-1) != "string") {
-            this.nodes.push("")
         }
 
         return this.nodes
@@ -128,7 +124,7 @@ export class MarkupInlineParser {
 
     private findClosingTag() {
         const target = this.parserStack.at(-1)?.closer
-        if (!target) { return [-1, 0, "", null] as const} 
+        if (!target) { return [-1, 0, "", null] as const}
 
         const index = this.text.indexOf(target)
         const length = target.length
@@ -142,7 +138,7 @@ export class MarkupInlineParser {
             .reduce((a, b) => (a[0] > b[0] ? b : a), [Infinity, 0, "", ""] as const)
 
         const [index, length, tag, closer] = indexSpecial
-        if (index == Infinity) { return [-1, 0, "", ""] as const} 
+        if (index == Infinity) { return [-1, 0, "", ""] as const}
 
         return [index, length, tag, closer] as const
     }
@@ -200,10 +196,10 @@ export class MarkupInlineParser {
 
     private tryParseString() {
         const quote = this.text.match(/^\s*(["'])/)
-        if (!quote) { return null} 
+        if (!quote) { return null}
 
         const endQuoteIdx = this.text.indexOf(quote[1], quote[0].length)
-        if (endQuoteIdx == -1) { return null} 
+        if (endQuoteIdx == -1) { return null}
 
         const str = this
             .consumeText(quote[0].length, endQuoteIdx, quote[1].length)
@@ -217,7 +213,7 @@ export class MarkupInlineParser {
 
     private tryParseValue() {
         const str = this.tryParseString()
-        if (str) { return str} 
+        if (str) { return str}
 
         return this.tryParseWord()
     }
@@ -275,7 +271,7 @@ export class MarkupInlineParser {
     }
 
     private addChild(node: MarkupNode | string) {
-        if (node == "") { return} 
+        if (node == "") { return}
         const children = this.parserStack.at(-1)?.node.children ?? this.nodes
 
         if (typeof node == "string" && typeof children.at(-1) == "string") {

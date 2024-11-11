@@ -1,5 +1,7 @@
 import { assertEquals } from "assert"
-import { MarkupParser, MarkupInlineParser, TagDictionary, defaultTagDictionary } from "./markup.ts"
+import {
+    MarkupParser, MarkupInlineParser, TagDictionary, defaultTagDictionary, MarkupRenderer
+} from "./markup.ts"
 
 type MarkupTree = ReturnType<typeof MarkupParser.prototype.parse>
 type MarkupSubTree = (MarkupTree[number]|string)[]
@@ -11,7 +13,11 @@ const inline = (tag: string, children: MarkupSubTree, params: string[] = [], att
     ({ tag, children, block: false, params, attributes })
 
 
-const wildcardDict = new TagDictionary([], { unsafelyAllowAnyTags: true, unsafelySkipSanitization: true })
+const wildcardDict = new TagDictionary([], {
+    unsafelyAllowAnyTags: true,
+    unsafelySkipSanitization: true,
+    regularizeTarget: "p",
+})
 
 const dict = defaultTagDictionary.extend([], {
     globalAllowedClasses: ["class1", "class2", "class3"],
@@ -35,7 +41,7 @@ pppp
         `
 
         assertEquals(new MarkupParser(wildcardDict).parse(text), [
-            blk("a", ["aaaa", "aaaa", blk("b", ["bbbb", "bbbb"])]),
+            blk("a", ["aaaa\n", "aaaa\n", blk("b", ["bbbb\n", "bbbb"])]),
             blk("c", ["cccc"]),
             blk("p", ["pppp"]),
             blk("d", []),
@@ -80,15 +86,15 @@ ppp1
 
         assertEquals(new MarkupParser(wildcardDict).parse(text), [
             blk("a", [
-                blk("b", ["bb", blk("c", ["cc"]), blk("d", ["dd"]), "bb"]),
-                blk("e", ["ee", "", "ee", "", blk("f", ["", "ff"])]),
-                "aaaa",
-                "    aaaa",
-                "    aaaa",
+                blk("b", ["bb\n", blk("c", ["cc"]), blk("d", ["dd"]), "bb"]),
+                blk("e", ["ee\n", "\n", "ee\n", "\n", blk("f", ["\n", "ff"])]),
+                "aaaa\n",
+                "    aaaa\n",
+                "    aaaa\n",
                 "aaaa",
             ]),
-            blk("p", ["p1", "p2", "p3"]),
-            blk("p", ["pp1 asdf", "pp2"]),
+            blk("p", ["p1\n", "p2\n", "p3"]),
+            blk("p", ["pp1 asdf\n", "pp2"]),
             blk("g", ["text"]),
             blk("p", ["ppp1"]),
         ])
@@ -96,7 +102,7 @@ ppp1
 })
 
 Deno.test({
-    name: "MarkupParser: params and attributes",
+    name: "MarkupParser: params and attributes 1",
     fn: () => {
         const text = `
 [a "/link.html" .class1 .class2: hyperlink]
@@ -117,7 +123,7 @@ Deno.test({
 })
 
 Deno.test({
-    name: "MarkupParser: params and attributes",
+    name: "MarkupParser: params and attributes 2",
     fn: () => {
         const text = `
 [a "/link.html" .class1 .class2] hyperlink
@@ -134,12 +140,12 @@ Deno.test({
             blk("h1", ["Title"], [], {}),
             blk("img", [], ["/image.jpg", "focus"], { w: "100", h: "200px", alt: "image", class: "x" }),
             blk("a", [
-                "hi",
+                "hi\n",
                 blk("b", ["bbb"], ["bb"]),
                 inline("c", ["cc"]),
                 inline("d", ["dd"]),
                 inline("e", [inline("f", ["ff"])]),
-                "",
+                "\n",
                 inline("g", ["gg"]),
             ], ["aa", "bb"], { x: "2" }),
         ])
@@ -197,9 +203,9 @@ Deno.test({
             blk("p", ["[unknown] text"]),
             blk("h1", ["[unknown: foo] bar"]),
             blk("blockquote", [
-                "[unknown2] foo",
-                "    [unknown3] bar",
-                "    [h2] ignore me for wrong indentation",
+                "[unknown2] foo\n",
+                "    [unknown3] bar\n",
+                "    [h2] ignore me for wrong indentation\n",
                 blk("h2", ["parse me"]),
             ]),
         ])
@@ -222,9 +228,9 @@ Deno.test({
             blk("p", ["text"], [], { class: "class1" }),
             blk("p", [
                 inline("a", ["link"], [], { href: "link.html", title: "hello" }),
-                "",
+                "\n",
                 blk("img", [], [], { src: "/img.jpg", alt: "image" }),
-                "[script] doEvil()",
+                "[script] doEvil()\n",
                 "[iframe] evil.tld",
             ]),
         ])
@@ -254,25 +260,87 @@ Deno.test({
         assertEquals(new MarkupParser(dict).parse(text), [
             blk("h1", [
                 inline("del", ["asdf"]),
+                " ",
                 inline("code", ["code"]),
+                " ",
                 inline("code", ["[b:hello]"]),
             ]),
             blk("code", [
-                "for k, v in pairs(t) do",
-                "    tbl[k][v] = true",
-                "end",
-                "",
-                "--[[",
-                "[h1] title",
-                "]]",
-                "",
+                "for k, v in pairs(t) do\n",
+                "    tbl[k][v] = true\n",
+                "end\n",
+                "\n",
+                "--[[\n",
+                "[h1] title\n",
+                "]]\n",
+                "\n",
                 "return tbl",
             ], [], { lang: "lua" }),
             blk("h1", [
                 inline("del", ["asdf"]),
+                " ",
                 inline("code", ["code"]),
+                " ",
                 inline("code", ["[b:hello]"]),
             ]),
         ])
+    }
+})
+
+Deno.test({
+    name: "MarkupRenderer: should render simple tree",
+    fn: () => {
+        const tree: MarkupTree = [
+            blk("p", ["hello"]),
+            blk("h1", ["world"]),
+            blk("p", ["foo"]),
+        ]
+
+        assertEquals(
+            new MarkupRenderer(dict).renderTree(tree).replaceAll("\n", ""),
+            `<p>hello</p><h1>world</h1><p>foo</p>`
+        )
+    }
+})
+
+
+Deno.test({
+    name: "MarkupRenderer: should render tree with proper newlines",
+    fn: () => {
+        const tree: MarkupTree = [
+            blk("p", [
+                "hello\n",
+                inline("strong", ["hello"]),
+                "world\n",
+                "\n",
+                "foo",
+            ]),
+        ]
+
+        assertEquals(
+            new MarkupRenderer(dict).renderTree(tree).replaceAll(" ", ""),
+            `<p>hello\n<strong>hello</strong>world\n\nfoo</p>`
+        )
+    }
+})
+
+
+Deno.test({
+    name: "MarkupRenderer: should render nested tree",
+    fn: () => {
+        const tree: MarkupTree = [
+            blk("blockquote", [
+                blk("blockquote", [
+                    blk("p", ["nest1"]),
+                    "nest2",
+                ]),
+                "nest3"
+            ])
+        ]
+
+        assertEquals(
+            new MarkupRenderer(dict).renderTree(tree).replaceAll("\n", ""),
+            `<blockquote><blockquote><p>nest1</p>nest2</blockquote>nest3</blockquote>`
+        )
     }
 })
