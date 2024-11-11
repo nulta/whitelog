@@ -1,13 +1,10 @@
 import { DOMParser, HTMLDocument, Element, Node, NodeType } from "jsr:@b-fuze/deno-dom@0.1.47"
 
-
-type DeepStringStack = Array<string | DeepStringStack>
 type PrimitiveType = string | number | boolean | null | Array<PrimitiveType | TemplateData>
 export type TemplateData = {
     [key: string]: TemplateData | PrimitiveType
 }
 type ImportFunc = (importStr: string) => Promise<string | null>
-
 
 export class BlackPrintTemplate<const T extends TemplateData> {
     private dom: HTMLDocument
@@ -255,25 +252,6 @@ type ExprToken =
 type _ExprTokenExpectation<T extends ExprToken> = T | { t: T["t"] }
 type ExprTokenExpectation = _ExprTokenExpectation<ExprToken>
 
-type AstNode =
-    | {t: "number", v: number}
-    | {t: "string", v: string}
-    | {t: "name", v: string}
-    | {t: "element", o: AstNode, p: AstNode}
-    | {t: "op.div", l: AstNode, r: AstNode}
-    | {t: "op.divfloor", l: AstNode, r: AstNode}
-    | {t: "op.mul", l: AstNode, r: AstNode}
-    | {t: "op.mod", l: AstNode, r: AstNode}
-    | {t: "op.add", l: AstNode, r: AstNode}
-    | {t: "op.sub", l: AstNode, r: AstNode}
-    | {t: "op.lt", l: AstNode, r: AstNode}
-    | {t: "op.gt", l: AstNode, r: AstNode}
-    | {t: "op.leq", l: AstNode, r: AstNode}
-    | {t: "op.geq", l: AstNode, r: AstNode}
-    | {t: "op.eq", l: AstNode, r: AstNode}
-    | {t: "op.neq", l: AstNode, r: AstNode}
-    | {t: "op.ternary", a: AstNode, b: AstNode, c: AstNode}
-
 type ExprReturns = TemplateData | PrimitiveType
 
 /** variable, for example, could be:
@@ -310,7 +288,7 @@ type ExprReturns = TemplateData | PrimitiveType
  * - `3.14`             -> number
  * - `"foo"`            -> string
 */
-class BlackPrintExpressionParser {
+export class BlackPrintExpressionParser {
     private tokens: ExprToken[]
     private data: TemplateData
 
@@ -327,9 +305,9 @@ class BlackPrintExpressionParser {
     private static tokenize(expr: string): ExprToken[] {
         // i hate this regex
         return expr.match(
-            /(\".*?\"|\'.*?\'|[a-zA-Z_][a-zA-Z_0-9]*|[+-]?(?:\d+\.?\d*|\.\d+)|(?:[<>!=]=|&&|\|\|)|[\!<>\[\]\(\)\-.+/*%?:]|[^\s])/g
+            /(\".*?\"|\'.*?\'|[a-zA-Z_][a-zA-Z_0-9]*|\d+\.?\d*|\.\d+|(?:[<>!=]=|&&|\|\|)|[\!<>\[\]\(\)\-.+/*%?:]|[^\s])/g
         )!.map(token => {
-            if (token.match(/^[+-]?(?:\d+\.?\d*|\.\d+)$/)) {
+            if (token.match(/^\d+\.?\d*|\.\d+$/)) {
                 return { t: "number", v: parseFloat(token) }
             }
             if (token.match(/^[a-zA-Z_][a-zA-Z_0-9]*$/)) {
@@ -446,6 +424,7 @@ class BlackPrintExpressionParser {
      * - `name`
      * - `expr.name`
      * - `expr[expr]`
+     * - `+number` or `-number`
      * - `number` or `string`
     */
     private evalOp0(): ExprReturns {
@@ -471,6 +450,12 @@ class BlackPrintExpressionParser {
         } else if (this.checkToken({ t: "number" }) || this.checkToken({ t: "string" })) {
             // literals
             value = this.pop()!.v
+        } else if (this.checkToken({ t: "op", v: "+" }) || this.checkToken({ t: "op", v: "-" })) {
+            // unary `+` or `-`
+            const op = this.pop()!.v
+            const right = this.evalOp0()
+            this.assertNumber(right)
+            value = op == "+" ? right : -right
         } else {
             console.warn("unexcepted token", this.peek())
             return null
@@ -709,60 +694,3 @@ class BlackPrintExpressionParser {
         return cond
     }
 }
-
-// expression test
-;(() => {
-    const data = {
-        a: {b: 3},
-        c: 5,
-        d: "hello",
-        e: [1, 2, 3],
-        tr: true,
-        fa: false,
-        x: {y: {z: {a: {b: 10}}}}
-    }
-
-    function expr(exp: string) {
-        return BlackPrintExpressionParser.parse(exp, data)
-    }
-
-    // deno-lint-ignore no-explicit-any
-    function assertEq(value: string, expected: any) {
-        if (expr(value) !== expected) {
-            console.log("")
-            console.error("Assertion failed from:", value)
-            console.error("Evaluated to:", expr(value))
-            console.error("Expected:", expected)
-            console.trace()
-            console.log("")
-        }
-    }
-
-    assertEq(`3`, 3)
-    assertEq(`a.b`, 3)
-    assertEq(`c`, 5)
-    assertEq(`c + c`, 10)
-    assertEq(`c + c + c`, 15)
-    assertEq(`a.b * c`, 15)
-    assertEq(`c + a.b * c + c`, 25)
-    assertEq(`d == "hello"`, true)
-    assertEq(`d != "hello"`, false)
-    assertEq(`tr || fa`, true)
-    assertEq(`tr && fa`, false)
-
-    assertEq(`d == "hi" || d == "hello"`, true)
-    assertEq(`d == "hi" && d == "hello"`, false)
-    assertEq(`true == (tr && fa) == true`, false)
-    assertEq(`true == (tr || fa) == true`, true)
-    assertEq(`true == (fa || fa || fa) == true`, false)
-    assertEq(`false || false && false || true`, true)
-    assertEq(`true == (fa || fa && fa || tr) == true`, true)
-
-    assertEq(`e[1]`, 2)
-    assertEq(`e.length`, 3)
-    assertEq(`"helloworld".length`, 10)
-    assertEq(`"helloworld"[0]`, "h")
-    assertEq(`"helloworld"[-1]`, "d")
-    assertEq(`x["y"]["z"]["a"]["b"]`, 10)
-    assertEq(`x.y.z.a.b + 10`, 20)
-})()
