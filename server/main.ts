@@ -27,8 +27,23 @@ Deno.serve({onListen: (addr)=>{
     Logger.info(`Listening on ${addr.hostname}:${addr.port}`)
 }}, app.fetch)
 
-UserManager.createUser({
-    username: "test",
-    password: "test-password",
-    displayName: "Test User",
-})
+;(async () => {
+    const testUser = await UserManager.createUser({
+        username: "test",
+        password: "test-password",
+        displayName: "Test User",
+    })
+
+    const post1 = await PostManager.createPost({
+        path: "test-post",
+        title: "Test post",
+        subtitle: "This is a test post",
+        content: "This is a test post",
+        author: testUser,
+    })
+
+    await PostManager.createTag("test-tag")
+    await PostManager.createTag("another-tag")
+    await PostManager.addTagToPost(post1, "test-tag")
+    await PostManager.addTagToPost(post1, "another-tag")
+})()

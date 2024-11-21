@@ -25,7 +25,7 @@ export class MarkupParser {
 
         const parsed = this.parseChildren(null)
         const contents = this.regularizeSubTree(parsed)
-        contents.forEach(content => this.dict.sanitizeNode(content))
+        contents.forEach(content => this.dict.filterNode(content))
         return contents
     }
 

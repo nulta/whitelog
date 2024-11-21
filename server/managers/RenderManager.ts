@@ -1,9 +1,14 @@
-import { BlackPrintTemplate, TemplateData } from "server/lib/blackprint/blackprint.ts";
-import { ConfigManager } from "server/managers/ConfigManager.ts";
+import { Logger } from "server/lib/logger.ts"
+import { BlackPrintTemplate, TemplateData } from "server/lib/blackprint/blackprint.ts"
+import { MarkupParser, defaultTagDictionary } from "server/lib/markup/markup.ts"
+import { ConfigManager } from "server/managers/ConfigManager.ts"
+
+const log = new Logger("RenderManager", "#f774e4")
 
 export class RenderManager {
     private static readonly basePath = "./client/templates/"
-    static templates = new Map<string, BlackPrintTemplate<never>>()
+    private static templates = new Map<string, BlackPrintTemplate<never>>()
+    private static markupDict = defaultTagDictionary
 
     /**
      * Initialize the RenderManager.
@@ -13,6 +18,8 @@ export class RenderManager {
         for await (const dirEntry of Deno.readDir(this.basePath)) {
             this.registerTemplate(dirEntry.name.replace(/\.bp\.html$/, ""))
         }
+
+        // TODO: Customizable markupDictionary w/ConfigManager
     }
 
     static async registerTemplate(name: string) {
@@ -37,9 +44,22 @@ export class RenderManager {
     static async renderTemplate<T extends TemplateData>(name: string, data: T) {
         const template = this.queryTemplate(name) as BlackPrintTemplate<T> | null
         if (!template) { throw new TypeError("Tried to render a unknown template") }
-        return await template.render({
-            site: await ConfigManager.getSiteConfig(),
-            ...data
-        })
+        const siteConfig = await ConfigManager.getSiteConfig()
+
+        try {
+            const rendered = await template.render({ site: siteConfig, ...data })
+            return rendered
+        } catch (e) {
+            log.error(`Failed to render template '${name}' - ${e}`)
+            throw e
+        }
+    }
+
+    static renderPostMarkup(markup: string) {
+        return new MarkupParser(this.markupDict).parse(markup)
+    }
+
+    static renderCommentMarkup(markup: string) {
+        return new MarkupParser(this.markupDict).parse(markup)
     }
 }

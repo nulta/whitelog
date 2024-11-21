@@ -25,11 +25,6 @@ export const defaultTagDictionary = new TagDictionary([
     inlineTag("del"),
     inlineTag("small"),
 
-    inlineTag("a", undefined, {
-        allowedAttributes: ["title"],
-        paramsToAttribute: ["href"]
-    }),
-
     inlineTag("img", undefined, {
         allowedAttributes: ["alt", "width", "height"],
         paramsToAttribute: ["src"],

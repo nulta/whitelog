@@ -12,13 +12,15 @@ export const id = "00000-00000"
 export const command = sql`
     CREATE TABLE posts (
         id TEXT PRIMARY KEY,
+        path TEXT UNIQUE NOT NULL,
         title TEXT NOT NULL,
         subtitle TEXT,
         content TEXT NOT NULL,
         created_at INTEGER NOT NULL,
         updated_at INTEGER,
         author_id TEXT REFERENCES users(id) ON DELETE SET NULL,
-        author_name_override TEXT
+        author_name_override TEXT,
+        poster_image TEXT
     ) STRICT;
 
     CREATE TABLE comments (
@@ -84,6 +86,7 @@ export const command = sql`
     CREATE INDEX idx_user_username ON users(username);
     CREATE INDEX idx_post_author_id ON posts(author_id);
     CREATE INDEX idx_post_created_at ON posts(created_at);
+    CREATE INDEX idx_post_path ON posts(path);
     CREATE INDEX idx_comment_post_id ON comments(post_id);
     CREATE INDEX idx_session_user_id ON sessions(user_id);
 `

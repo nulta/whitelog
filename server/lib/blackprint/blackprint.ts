@@ -402,7 +402,7 @@ export class BlackPrintExpressionParser {
             } else if (key == "length") {
                 return obj.length
             } else {
-                throw new Error(`String and Array object only has a length property and array-like access, not ${key}`)
+                throw new Error(`String and Array object only has a length property and array-like access, not '${key}'`)
             }
         }
 
@@ -410,11 +410,11 @@ export class BlackPrintExpressionParser {
             if (Object.hasOwn(obj, key)) {
                 return obj[key]
             } else {
-                throw new Error(`The object does not have key ${key}`)
+                throw new Error(`The object does not have key '${key}'`)
             }
         }
 
-        throw new Error(`Cannot access property ${key} of a non-object`)
+        throw new Error(`Cannot access property '${key}' of a non-object`)
     }
 
 

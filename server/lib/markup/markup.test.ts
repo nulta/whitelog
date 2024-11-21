@@ -15,7 +15,7 @@ const inline = (tag: string, children: MarkupSubTree, params: string[] = [], att
 
 const wildcardDict = new TagDictionary([], {
     unsafelyAllowAnyTags: true,
-    unsafelySkipSanitization: true,
+    unsafelySkipFiltering: true,
     regularizeTarget: "p",
 })
 

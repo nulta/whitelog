@@ -98,13 +98,13 @@ export class TagDictionary {
     }
 
     /**
-     * Sanitize a tree of node, removing any attributes or classes that are not allowed.
+     * Filter a tree of node, removing any attributes or classes that are not allowed.
      * Parameters are attributified according to the tag dictionary.
      * 
      * This method manipulates the original node tree.
      */
-    sanitizeNode(node: MarkupNode | string): void {
-        if (this.config.unsafelySkipSanitization) {
+    filterNode(node: MarkupNode | string): void {
+        if (this.config.unsafelySkipFiltering) {
             // Well, they asked for it
             return
         }
@@ -118,8 +118,8 @@ export class TagDictionary {
         if (!trans) {
             if (this.config.unsafelyAllowAnyTags) {
                 // Process according to global rules
-                this.sanitizeAttributes(node, [])
-                this.sanitizeClasses(node, [])
+                this.filterAttributes(node, [])
+                this.filterClasses(node, [])
                 node.params = []
                 return
             } else {
@@ -132,15 +132,15 @@ export class TagDictionary {
                     // why????
                     node.attributes = {}
                     node.params = []
-                    node.children.forEach(c => this.sanitizeNode(c))
+                    node.children.forEach(c => this.filterNode(c))
                     return
                 }
             }
         }
 
-        // Sanitize attributes & classes
-        this.sanitizeAttributes(node, trans.allowedAttributes ?? [])
-        this.sanitizeClasses(node, trans.allowedClasses ?? [], trans.allowAnyClasses)
+        // Filter attributes & classes
+        this.filterAttributes(node, trans.allowedAttributes ?? [])
+        this.filterClasses(node, trans.allowedClasses ?? [], trans.allowAnyClasses)
 
         // Apply default attributes
         if (trans.defaultAttributes) {
@@ -181,8 +181,8 @@ export class TagDictionary {
             node.children = node.children.filter(c => typeof c == "string")
         }
 
-        // Recursively sanitize children
-        node.children.forEach(c => this.sanitizeNode(c))
+        // Recursively filter children
+        node.children.forEach(c => this.filterNode(c))
     }
 
     getHtmlTag(nodeName: string, isBlock: boolean): string | null {
@@ -194,7 +194,7 @@ export class TagDictionary {
         return tag.elem
     }
 
-    private sanitizeAttributes(node: MarkupNode, allowed: string[]) {
+    private filterAttributes(node: MarkupNode, allowed: string[]) {
         const globalAllowed = this.config.globalAllowedAttributes ?? []
         const allowedSet = new Set([...allowed, ...globalAllowed, "class"])
 
@@ -205,7 +205,7 @@ export class TagDictionary {
         }
     }
 
-    private sanitizeClasses(node: MarkupNode, allowed: string[], allowAny = false) {
+    private filterClasses(node: MarkupNode, allowed: string[], allowAny = false) {
         allowAny ||= this.config.globalAllowAnyClasses ?? false
         const globalAllowed = this.config.globalAllowedClasses ?? []
         const allowedSet = new Set([...allowed, ...globalAllowed])
@@ -272,5 +272,5 @@ type TagDictConfig = {
     regularizeTarget?: string
     
     unsafelyAllowAnyTags?: boolean
-    unsafelySkipSanitization?: boolean
+    unsafelySkipFiltering?: boolean
 }

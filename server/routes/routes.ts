@@ -8,8 +8,6 @@ import { route as api } from "server/routes/api/routes.ts"
 
 export const routes = new Hono()
 
-routes.get("/favicon.ico", c => c.notFound())
-
 routes.route("/", index)
 routes.route("/login", login)
 routes.route("/register", register)

@@ -2,6 +2,7 @@ import { DatabaseController, IDatabase, PreparedQuery } from "server/models/Data
 
 type Post = {
     id: string
+    path: string
     title: string
     subtitle: string | null
     content: string
@@ -9,14 +10,17 @@ type Post = {
     updated_at: number | null
     author_id: string
     author_name_override: string | null
+    poster_image: string | null
 }
 
 export class PostDb extends DatabaseController<Post> {
     private paginateQuery: PreparedQuery<[], Post, [number, number]>
+    private getByPathQuery: PreparedQuery<[], Post, [string]>
 
     constructor(db: IDatabase) {
         super(db, "posts", { idLength: 5 }, {
             id: "",
+            path: "",
             title: "",
             subtitle: "",
             content: "",
@@ -24,6 +28,7 @@ export class PostDb extends DatabaseController<Post> {
             updated_at: 0,
             author_id: "",
             author_name_override: "",
+            poster_image: "",
         })
 
         this.paginateQuery = db.prepareQuery(
@@ -33,11 +38,22 @@ export class PostDb extends DatabaseController<Post> {
                 LIMIT ?
             `
         )
+
+        this.getByPathQuery = db.prepareQuery(
+            `SELECT ${this.dataKeys.join(", ")} FROM posts
+                WHERE path = ?
+            `
+        )
     }
 
     async paginate(limit: number, beforeDate: number): Promise<Post[]> {
         const result = this.paginateQuery.allEntries([beforeDate, limit])
         return await Promise.resolve(result)
+    }
+
+    async getByPath(path: string): Promise<Post | null> {
+        const result = this.getByPathQuery.firstEntry([path])
+        return await Promise.resolve(result ?? null)
     }
 }
 
